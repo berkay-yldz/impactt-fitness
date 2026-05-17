@@ -1,4 +1,4 @@
-# impactt-fitness# 🏋️ IMPACT FITNESS — MASTER REPO
+# impactt-fitness
 
 Bu repo, Impact Fitness projesinin tek gerçeği (Single Source of Truth) ve merkezidir. Proje **Vercel Serverless (Monorepo)** mimarisiyle çalışmaktadır.
 
