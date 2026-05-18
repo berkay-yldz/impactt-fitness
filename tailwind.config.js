@@ -10,21 +10,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Shadcn UI Değişkenleri
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        
-        // IMPACT Projesi Özel Renk Paleti
+
+        // IMPACT Anayasası Premium Neon Renk Paleti
         impact: {
-          primary: "#FF6B35",
-          dark: "#0D0D0D",
-          surface: "#1A1A2E",
+          dark: "#030712",
+          surface: "#0B0F19",
+          cyan: "#06B6D4",    /* Enerji / Postür Analiz Canlılığı */
+          blue: "#3B82F6",    /* Profesyonel Spor/Metrik Rengi */
+          purple: "#A855F7",  /* Yapay Zeka / Premium Modu */
         },
-        
-        // Shadcn Standart Komponent Renkleri
+
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
