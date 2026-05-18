@@ -1,33 +1,16 @@
-# impactt-fitness
+# React + Vite
 
-Bu repo, Impact Fitness projesinin tek gerçeği (Single Source of Truth) ve merkezidir. Proje **Vercel Serverless (Monorepo)** mimarisiyle çalışmaktadır.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## 🏗️ KLASÖR MİMARİSİ (Strict Structure)
-Frontend (React) ve Backend (Serverless API) aynı çatı altındadır. Klasör sınırlarını ihlal etmek yasaktır.
+Currently, two official plugins are available:
 
-```text
-📂 impact-fitness/
-├── 📂 api/                # [ERAN] Vercel Serverless Functions (Backend)
-│   ├── chat-rag.js        # Gemini AI servisi
-│   ├── cron-daily-email.js
-│   └── generate-diet.js
-├── 📂 src/                # [EMRULLAH] Vite + React (Frontend)
-│   ├── 📂 components/     # Tekrar kullanılabilir UI parçaları
-│   ├── 📂 pages/          # Sayfa görünümleri (Auth, vb.)
-│   ├── 📂 services/       # Firebase ve API fetch işlemleri
-│   ├── 📂 utils/          # Mediapipe ve Matematik fonksiyonları
-│   └── 📂 data/           # Statik JSON dosyaları
-├── 📄 vercel.json         # Vercel yapılandırması
-├── 📄 .gitignore          # Asla pushlanmayacaklar (.env)
-└── 📄 README.md           # Proje Anayasası
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-📜 PROJE ANAYASASI (Kırmızı Çizgiler)
-Tech Stack Donduruldu: Firebase NoSQL, Vercel Serverless, React (Vite), TailwindCSS, MediaPipe. Başka bir teknoloji önermek (Supabase, Next.js vb.) yasaktır.
+## React Compiler
 
-Branch Kuralı: main branch'ine doğrudan kod pushlamak KESİNLİKLE YASAKTIR. Tüm geliştirmeler dev branch'inde yapılır.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-.env Güvenliği: Firebase Private Key veya Gemini API Key gibi şifreler asla GitHub'a pushlanamaz. Pushlayan kahve ısmarlar.
+## Expanding the ESLint configuration
 
-Bağımsız İlerleme: Frontend backend'i, backend frontend'i beklemez. API hazır değilse frontend "dummy" data (console.log) ile sayfayı bitirip geçer.
-
-Detaylı 4 Haftalık Görev Dağılımı (Master Execution Protocol) WhatsApp grubunda sabitlenmiştir.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
