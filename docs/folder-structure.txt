@@ -1,0 +1,57 @@
+impact-fitness/
+│
+├── .env                     <-- KRİTİK: Vercel'de ve lokalde duracak gizli anahtarlar (GEMINI_API_KEY, RESEND_API_KEY, FIREBASE_ADMIN)
+├── .gitignore               <-- GitHub'a nelerin gitmeyeceğini belirler (.env kesinlikle buraya yazılacak)
+├── IMPACT_AI_ANAYASASI.md   <-- Ajanlar için kurallar
+├── package.json             <-- Vite, Tailwind, Firebase, Lottie bağımlılıkları
+├── vercel.json              <-- Vercel ayarları (Serverless fonksiyon izinleri ve Cron Job saatleri)
+├── vite.config.js           <-- React derleme ayarları
+│
+├── api/                     <-- [EMRULLAHIN BÖLGESİ - BACKEND / VERCEL SERVERLESS]
+│   │                            (Gemini ve Mail işlemleri Frontend'den değil, buradan yapılacak)
+│   ├── cron-daily-email.js  <-- Gece 00:00'da tetiklenir. Ücretsizlere haber, Premiumlara Streak/Yıldız maili atar.
+│   ├── chat-rag.js          <-- Frontend'den mesajı alır, Firestore'dan eski sohbetleri çeker, Gemini API'ye güvenle iletir.
+│   ├── generate-diet.js     <-- "Aynı menü / Çeşitli menü" isteğine göre Kaggle verisinden günlük plan karma/shuffle algoritması.
+│   └── upgrade-premium.js   <-- Sahte ödeme butonuna basılınca `is_premium` değerini true yapan güvenli API.
+│
+├── public/                  <-- [GÖRSELLER VE DIŞA AÇIK DOSYALAR]
+│   ├── lottie/              <-- AI ile üretilmiş Sarı "One Punch Man" tarzı karakterimizin JSON/GIF animasyonları
+│   └── assets/              <-- Logolar, Favicon vb.
+│
+└── src/                     <-- [ERAN VE BERKAY'IN BÖLGESİ - FRONTEND & LİBERARY]
+    │
+    ├── data/                <-- [STATİK VERİ MERKEZİ]
+    │   ├── programDecks.json<-- Postür ve Kas gelişimi için Kolay-Orta-Zor hiyerarşik antrenman desteleri (Veritabanına yük bindirmemek için)
+    │   └── kaggleFood.json  <-- Python ile filtrelenmiş 150 maddelik temiz Türkçe besin makro listesi
+    │
+    ├── context/             <-- [GLOBAL STATE YÖNETİMİ]
+    │   └── AuthContext.jsx  <-- Kullanıcının giriş yapıp yapmadığını ve Premium olup olmadığını tüm sayfalara dağıtan hafıza.
+    │
+    ├── services/            <-- [VERİTABANI VE API İLETİŞİMİ]
+    │   ├── firebase.js      <-- Firebase başlatma (init) ayarları.
+    │   ├── authService.js   <-- Kayıt ol, Giriş yap, Çıkış yap fonksiyonları.
+    │   └── dbService.js     <-- Firestore okuma/yazma (Kullanıcı tecrübesi, Boy/Kilo, Todo listesi işaretleme işlemleri).
+    │
+    ├── utils/               <-- [YAPAY ZEKA VE ALGORİTMALAR]
+    │   ├── mediapipeCore.js <-- Kameradan $x, y, z$ koordinatlarını çeken MediaPipe motoru.
+    │   ├── angleMath.js     <-- Çekilen koordinatlardan eklem açılarını hesaplayan matematiksel formüller.
+    │   └── adaptiveLogic.js <-- "3 başarısız tekrar = 1 alt zorluk seviyesi" mantığını işleten karar mekanizması.
+    │
+    ├── components/          <-- [TEKRAR KULLANILAN ARAYÜZ PARÇALARI]
+    │   ├── ui/              <-- shadcn/ui bileşenleri (Button, Input, Card, Modal vb.)
+    │   ├── Chatbot/         <-- Sağ alta sabitlenecek Gemini RAG arayüzü ve mesaj balonları.
+    │   ├── Testimonials/    <-- (Forum iptali çözümü) Ana sayfadaki sahte "Başarı Hikayeleri" kartları.
+    │   └── CameraFeed/      <-- Disiplin Modu için kamerayı ekrana basan ve hatada kırmızı/yeşil çerçeve çizen bileşen.
+    │
+    ├── pages/               <-- [ANA SAYFALAR]
+    │   ├── Auth.jsx         <-- Giriş ve Kayıt ekranı.
+    │   ├── Onboarding.jsx   <-- İlk kayıttan sonra çıkan: Vücut tipi, Kilo, Tecrübe anketi.
+    │   ├── Dashboard.jsx    <-- Kullanıcı paneli: Alev ikonu (Streak), Kazanılan Yıldızlar, Ödüller ve Todo ilerlemesi.
+    │   ├── Posture.jsx      <-- Postür modülü ana ekranı (Kolay-Orta-Zor seçimi ve hareket listesi).
+    │   ├── Muscle.jsx       <-- Kas gelişimi modülü ana ekranı (Kolay-Orta-Zor seçimi).
+    │   ├── Nutrition.jsx    <-- Beslenme modülü (Evdeki yiyecekleri seçme, Todo öğün işaretleme ve Çeşitlilik switch'i).
+    │   ├── Discipline.jsx   <-- PREMIUM ÖZEL: Sadece MediaPipe kamera analizinin çalıştığı, hareketi sayan odak ekranı.
+    │   └── PremiumModal.jsx <-- Sahte kredi kartı ekranı ("Premium'a Yükselt" tetikleyicisi).
+    │
+    ├── App.jsx              <-- Tüm sayfaların Router (Yönlendirme) ile birbirine bağlandığı ana dosya.
+    └── main.jsx             <-- React projesinin başlatıldığı kök (Root) dosya.

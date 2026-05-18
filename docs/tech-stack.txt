@@ -1,0 +1,130 @@
+IMPACT PROJESİ: TECH STACK DOKÜMANI
+
+1. FRONTEND KATMANI (Kullanıcı Arayüzü ve Vitrin)
+
+Çatı (Framework): React.js + Vite (Next.js kesinlikle kullanılmayacak, kamera hatalarını önlemek için).
+
+Stil, UI ve Sayfa Geçişleri: Tailwind CSS + shadcn/ui + Framer Motion.
+
+Animasyon (Rol Model İçin): Adım 1: Karakter oluşturma (DALL-E 3 veya Midjourney), Adım 2: Animasyon ekleme (Viggle AI veya Luma Dream Machine), Adım 3: Temizleme ve Projeye Gömme 
+
+2. BACKEND VE VERİTABANI KATMANI (Motor ve Hafıza)
+
+Veritabanı ve Sunucu: Firebase
+
+Kimlik Doğrulama (Auth): Firebase Authentication
+
+Arka Plan Lojikleri (Otomasyon): Vercel Serverless Functions + Vercel Cron Jobs (Kredi kartı girmemek ve ücretsiz mail otomasyonu kurmak için).
+
+3. YAPAY ZEKA VE GÖRÜNTÜ İŞLEME (Zeka ve Disiplin)
+
+Canlı Görüntü İşleme (Disiplin Modu): MediaPipe Pose (JavaScript API)
+
+Sohbet ve RAG Asistanı: Gemini 1.5 Flash API (veya OpenAI GPT-4o-mini)
+
+Neden? Çok hızlı ve ucuz. Kullanıcının Firebase'deki profilini (Örn: "Ektomorf, 3 gündür Streak yapıyor, Postür çalışıyor") sistem promptunun içine görünmez bir bağlam (Context) olarak verip RAG (Retrieval-Augmented Generation) mantığını kuracağın beyin.
+
+Besin Verisi İşleme (Kaggle Hazırlığı): Python (Pandas)
+
+4. VERSİYON KONTROL VE CANLIYA ALMA (Deployment)
+(Tüm Ekibin Ortak Alanı)
+
+Kod Yönetimi: GitHub
+
+Kural: Kimse kodu WhatsApp'tan veya zip dosyasıyla birbirine atmayacak. Her modül bir GitHub "Branch"inde (dalında) geliştirilecek. Onaydan geçen kodlar "Main" (Ana) dala eklenecek.
+
+Canlı Sunucu (Hosting): Vercel
+
+
+==================================================================
+==================================================================
+
+=====
+1. ÇATLAK: E-posta Gönderim Motorunun Eksikliği
+Transkript Ne Diyor? "Mail yoluyla üye olan kullanıcılara günlük olarak güncel fitness haberleri yollayabiliriz."
+
+Tech Stack'teki Eksik: Biz otomasyonu tetiklemek için "Vercel Cron Jobs" dedik. Bu doğru; Vercel gece 00:00'da sistemi uyandırır. Ancak Vercel'in veya Firebase'in içinde "kullanıcıya özel bülten/mail yollama" (SMTP) servisi yoktur.
+
+Mimari Çözüm: Tech Stack'in 2. Katmanına (Arka Plan Lojikleri) bir e-posta servis sağlayıcısı eklemeliyiz. Modern ve Vercel ile en iyi çalışan çözüm Resend'dir. (Alternatif: SendGrid). Yazılacak olan API, Vercel'den tetiklendiğinde Resend üzerinden mailleri fırlatacak.
+
+
+=====
+2. ÇATLAK: Chatbot'un "Hafıza" Kapasitesi (Veritabanı Şeması)
+Transkript Ne Diyor? "Müşterilerin chatbot'a sorduğu soruları ve mesajları da depolayabilirsek onlara özel deneyim sunma fırsatı yakalarız."
+
+Tech Stack'teki Eksik: Firestore'da Users, Exercise_Logs ve Meal_Plans tablolarını kurduk ancak chatbot sohbet geçmişini unuttuk. Gemini 1.5 Flash (veya GPT-4o-mini) bağlamsal çalışsa da, geçmiş sohbetleri kendi başına ücretsiz olarak hafızasında tutmaz. Mesajları bizim ona her seferinde paketleyip vermemiz gerekir.
+
+Mimari Çözüm: Backend kişisinin veritabanı görevlerine Chat_History (Sohbet Geçmişi) tablosu/koleksiyonu eklenmeli. Kullanıcı her yazdığında mesaj Firestore'a kaydedilmeli; onaylanmış prompt mimarisi, yeni cevap üretmeden önce bu tablodan son 5 konuşmayı çekip yapay zekaya "bağlam" olarak sunmalı.
+
+
+=====
+3. ÇATLAK: Beslenme Modülündeki "Çeşitlilik" Algoritması
+Transkript Ne Diyor? "Sürekli aynı şeyleri yemek isteyebilir veya yiyeceklerin gün gün çeşitlendirilmesini isteyebilir, bunun dengesini de bir şekilde iyi kurmamız gerekiyor."
+
+Tech Stack'teki Eksik: Biz besinleri Python/Pandas ile JSON yapıp Firebase'e gömeceğimizi söyledik, bu doğru. Ancak "çeşitlilik veya stabilite" isteği, basit bir veritabanı okuma işlemi değildir; ciddi bir algoritmik hesaplamadır.
+
+Mimari Çözüm: Bu özellik, Vercel Serverless Functions üzerinde özel bir matematiksel algoritma (Shuffle/Randomization logici) yazılmasını gerektirir. Kullanıcı arayüzüne "Aynı menüyü tekrarla / Her gün değiştir" şeklinde bir switch (buton) eklenecek ve ilgili ekip üyesi bunu API'ye parametre olarak gönderecek.
+
+==================================================================
+==================================================================
+
+=====
+MİKRO ÇATLAK 1: "Program Destesi"nin Depolama Yeri Belli Değil
+Sorun: Transkriptte "Programlar hiyerarşik olarak zorluk seviyesine göre sıralanacak (program destesi oluşturacak)" dedik. Tech Stack'te kullanıcı loglarını (Exercise_Logs) tutacağımızı belirttik. Peki ama bu egzersizlerin kendisi (Örn: Zor Seviye Postür 1. Aşama = 10 Tekrar) nerede duracak?
+
+Mimari Çözüm: Firestore'a ekstra bir koleksiyon açılıp zaman kaybı yaşanmasına gerek yok. Program desteleri sabit verilerdir. Frontend'de (React içinde) programDecks.json adında statik bir dosya oluşturulacak. (ben)Berkay'ın yazacağı adaptif zorluk algoritması, başarı/başarısızlık durumuna göre veriyi doğrudan bu JSON'dan (hızlıca) çekecek.
+
+
+=====
+MİKRO ÇATLAK 2: "Premium Olma" (Ödeme Geçidi) Zaman Tuzağı
+Sorun: Transkript "Projeye Premium üyelik sistemi de ekleyebiliriz" diyor ve biz bunu merkeze aldık. Ancak bir kullanıcının Premium olması için normalde Iyzico veya Stripe gibi bir ödeme sistemi entegre etmek gerekir. 4 haftalık sürede gerçek bir ödeme API'si bağlamak ekibe en az 4-5 gün kaybettirir ve sunumda patlama riski yaratır.
+
+Mimari Çözüm: Tech Stack'e şu kural kesin olarak eklenmelidir: "Fake (Sahte) Ödeme Akışı". Eran, arayüze şık bir kredi kartı girme ekranı veya "Premium'a Yükselt" butonu yapacak. Tıklandığında hiçbir kart işlemi yapılmadan doğrudan Emrullah'ın yazacağı API tetiklenecek ve Firestore'daki is_premium değeri true yapılacak. Hocaya "Sistem ödeme almaya hazır mimaridedir, canlıya çıkışta sadece Stripe API anahtarı eklenecektir" denilecek.
+
+
+=====
+MİKRO ÇATLAK 3: Vercel Cron Jobs "Zaman Aşımı" (Timeout) Sınırı
+Sorun: 2. Katmanda "Gece 00:00'da kullanıcılara günlük e-posta atacak tetikleyici" kurduk (Vercel Cron). Ancak Vercel'in ücretsiz (Hobby) paketinde Serverless fonksiyonların maksimum çalışma süresi 10 saniyedir. Eğer veritabanında 500 kullanıcı olursa, sistem 10 saniye içinde herkese mail atamayacağı için Cron Job yarıda kesilir ve çöker (Timeout Error).
+
+Mimari Çözüm: Bu, kodlama değil bir "Test/Sunum" kuralıdır. Projeyi hocaya sunarken ve test ederken Firestore'daki kayıtlı test kullanıcı sayısını maksimum 10-15 kişi ile sınırlandırmalısınız. Böylece Vercel Cron Job saniyeler içinde çalışıp mailleri atar ve kapanır, sistem asla hata vermez.
+
+
+==================================================================
+==================================================================
+
+=====
+NANO-ÇATLAK 1: Gemini API Key İfşası (Ölümcül Güvenlik Açığı)
+Sorun: Tech Stack'te Frontend için React.js + Vite kullanıyoruz. RAG Chatbot için de Gemini 1.5 Flash API. Eğer Eran veya sen, Gemini API anahtarını (API Key) doğrudan React (Vite) kodunun içine yazarsanız, tarayıcıda "Öğeyi Denetle" (Inspect) yapan herhangi biri API anahtarınızı çalar. Google hesabınıza binlerce dolarlık fatura yansıyabilir.
+
+Mimari Çözüm: React (Frontend) asla doğrudan Gemini ile konuşmayacak. Eran, arayüzden atılan mesajı 2. Katmandaki Vercel Serverless Function'a (Backend) gönderecek. Gemini API anahtarınız sadece Vercel'in .env (gizli ortam değişkenleri) dosyasında duracak. Vercel backend'i Gemini'den cevabı alıp React'e güvenli bir şekilde geri iletecek.
+
+
+=====
+NANO-ÇATLAK 2: Firebase'in Saatli Bombası (30 Gün Kuralı)
+Sorun: Emrullah Firebase veritabanını (Firestore) ilk kurduğunda, Google geliştiricilere kolaylık olsun diye sistemi "Test Modu"nda başlatır. Test modunun içine gömülü, görünmez bir kod vardır: Veritabanı tam 30 gün sonra kendini tüm okuma/yazma işlemlerine kilitler. Eğer bugün projeye başlarsanız ve sunumunuz 30 günden bir gün sonraya denk gelirse, hocanın karşısında veritabanı "Permission Denied" hatası verip kilitlenir.
+
+Mimari Çözüm: Emrullah veritabanını kurduğu ilk gün, Firestore Security Rules (Güvenlik Kuralları) sekmesine gidip şu kuralı yapıştıracak:
+match /{document=} { allow read, write: if request.auth != null; }
+Bu kural, 30 gün saatli bombasını iptal eder ve "Sisteme sadece giriş yapmış (Auth olmuş) kullanıcılar veri yazabilir/okuyabilir" mantığını kalıcı olarak kurar.
+
+
+=====
+NANO-ÇATLAK 3: İstemci Güveni (Client-Side Trust) ve Kamera Hilesi
+Sorun: Disiplin Modu kamerasını (MediaPipe) tarayıcıda, yani kullanıcının bilgisayarında (Frontend) çalıştırıyoruz dedik (Gecikmeyi önlemek için). Peki, kurnaz bir öğrenci kamerayı hiç açmadan, tarayıcı konsolundan (Console) Emrullah'ın Backend API'sine {"postur_tamamlandi": true, "tekrar_sayisi": 10} şeklinde sahte bir istek atarsa ne olacak? Sistem onu başarılı sanıp Yıldız (Premium ödülü) verecek.
+
+Mimari Çözüm (Sunum Stratejisi): 1 aylık sürede buna anti-hile (anti-cheat) yazılımı geliştirmek zaman kaybıdır. Kodu olduğu gibi bırakın. Ancak hocaya sunum yaparken şu cümleyi kurarak mimari zekanızı gösterin: "Hocam, video gecikmesini (latency) sıfıra indirmek için analizleri Edge AI (Tarayıcı) üzerinde yaptık. Canlıya geçiş aşamasında (Production), tarayıcıdan gelen bu başarı logları, güvenlik amacıyla sunucu tarafında çapraz doğrulamaya (Cross-Validation) tabi tutulacak şekilde mimarimizde yer ayrılmıştır." Bu cümle sizi "öğrenci" statüsünden "kıdemli mühendis" statüsüne çıkarır.
+
+==========================================
+==========================================
+
+=====
+PİKO-ÇATLAK: E-posta Gönderim Mantığı (Yıldız vs. Streak)
+Sorun: Çatlak 1'de "Gece 00:00'da sistemi uyandırır... Resend üzerinden mailleri fırlatacak" dedik. Transkript de "Mail yoluyla üye olan kullanıcılara günlük olarak güncel fitness haberleri yollayabiliriz" diyor. Peki gece 00:00'da yollayacağımız mailin içeriği herkese aynı mı olacak?
+
+Detay: Eğer Vercel Cron her gece herkese aynı "Günün Fitness Haberi"ni yollarsa, Premium kullanıcının kazandığı "Yıldızlar" (Oyunlaştırma) ve kullanıcının yaptığı "Streak" mailde gözükmeyecek demektir. Oysa Streak ve Yıldız sisteminin en büyük amacı kullanıcıyı motive etmektir. Bunu mailde göstermezsek, özelliğin potansiyelini harcamış oluruz.
+
+Mimari Çözüm (Prompt Kuralı): Bu bir kod altyapısı değişikliği değil, Emrullah'ın yazacağı API'nin mantık (logic) kuralıdır. Emrullah'ın Cron Job API'si, e-postayı yollamadan hemen önce Firestore'daki Users tablosundan o kişinin adını, is_premium durumunu ve Streak_Day değerini okuyacak.
+
+Eğer kullanıcı Ücretsiz ise: Mail sadece "Günün Fitness Haberi"ni içerecek.
+
+Eğer kullanıcı Premium ise: Mail "Günün Haberi" ile birlikte, "Tebrikler Emrullah, şu an 4 Günlük Streak'tesin! Bugün 5 Yıldız kazandın!" gibi dinamik ve kişiselleştirilmiş veriler de içerecek.

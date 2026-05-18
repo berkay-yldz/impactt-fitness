@@ -1,0 +1,37 @@
+	İleri web programlama dersi bitirme projesi yapmamız gerekiyor. Grubumuz 3 kişi. Projenin amacı, fitness yapmak isteyen insanlara ücretsiz postür geliştirme, kas geliştirme ve beslenme olmak üzere 3 işlevselliği bulunacak. Projenin adı Impact. Bir tane karikatür olacak ve tüm hareketleri onun üzerinden göstereceğiz, yani bizim rol modelimiz olacak. Ek olarak kullanıcı deneyimini geliştirmek ve müşteri hizmetlerini iyileştirmek amacıyla bir chatbot koyacağız. Chatbot'u bir API ile koyarız evet, fakat müşterilerin chatbot'a sorduğu soruları ve mesajları da depolayabilirsek onlara özel deneyim sunma fırsatı yakalarız. Ek olarak üyelik sistemimiz olmalı. Mail yoluyla üye olan kullanıcılara günlük olarak güncel fitness haberleri yollayabiliriz. Projeye Premium üyelik sistemi de ekleyebiliriz, bu sayede Premium kullanıcılara hafta veya ay bazında puanlama yaparız ve belirli derecelere ulaşan kullanıcılara her hafta/ay belirli ödüller verebiliriz. Ödüllerin ne olacağına henüz karar verilmedi, düşünür buluruz. Ek olarak başta bahsettiğim 'postür geliştirme, kas geliştirme ve beslenme' bu 3 özellikte kullanıcılar aşama seçseler de iyi olabilir. Mesela ('kolay - orta - zor') gibi. Örneğin zoru seçen PREMIUM kullanıcılar, verilen programı tamamlayabilmek için hareketleri kamera karşısında postür analizi eşliğinde gerçekleştirmek zorunda kalacaklar. Projenin başlangıç aşaması için sadece postür ve kas geliştirme özelliklerinde analiz kullanılabilir. 'kolay-orta-zor' gibi bir zorluk skalası opsiyonunun, disiplin ve istikrar arayan sporculara/sporcu adaylarına aradıkları o ortamı sunacağını düşünüyoruz.
+
+	Ek bilgiler: Projedeki seçilecek olan alanlar için, kullanıcıların ayrı ayrı tecrübeleri sorulsun. Kullanıcılar body type'larını da seçerse eğer, kilo verisiyle birleşince; kullanıcının fiziki durumunu daha emin bir şekilde tanıyabiliriz. Kişiye özel program yazma kısmı ise beslenme, postür gelişimi ve kas gelişimi için ayrı ayrı işlemeli. Aksi takdirde proje çok yüzeysel olur ve kullanıcılara özel deneyim yaşatmaz. Beslenme kısmı için, sisteme her türlü yiyecek verisini eklemeye çalışacağız. Kullanıcıya, evinde bulunma olasılığı yüksek olan yiyecekleri seçtireceğiz ve beslenme programını bu seçim havuzunu kullanarak oluşturacağız. Beslenme programını gün bazında ve hafta bazında olmak üzere 2 şekilde çıkaracağız, zaten hafta bazında çıkardıktan sonra 1 aya tamamlamak için 4 kez tekrarlanır. Ek olarak bazı kullanıcılar beslenme programında sürekli aynı şeyleri yemek isteyebilir veya yiyeceklerin gün gün çeşitlendirilmesini isteyebilir, bunun dengesini de bir şekilde iyi kurmamız gerekiyor. Ek olarak öğünleri bitirdikçe bir todo list gibi işaretlesinler. 
+	Postür modülüne geçelim. Bu modül iskelet/omurga sistemi odaklı bir modül. Proje ekibi omurga hastalıklarını araştıracak ve projeye eklenebilecek tedavi programları üzerine düşünecek. Kullanıcıya uygun program seçilecek. Temel seviye fakat faydalı/postür-destekleyici programlar olacak. Bu modülün egzersiz programlarında da hareketlerin düzgün yapılabilmesi için postür/görüntü analiz sistemini etkinleştirebiliriz (görüntü analizi Premium kullanıcılar için). 
+	Kas gelişimi modülüne geçelim. Her tip kullanıcıya uygun şekilde program çıkarabilmek için kas gelişimi çeşitleri ile ilgili araştırmalar yapılacak. Premium kullanıcılar görüntü analiz sistemini kullanabilecek. 
+	Her bir modül için (beslenme hariç), kolay-orta-zor seviye programlar oluşturulacak. Bu üç aşamayı da ücretsiz kullanıcı kullanabilecek. Mail ile güncel haber bülteni özelliği tüm kullanıcılara açık olacak. Tüm kullanıcıların seviyeleri düzenli olarak takip edilecek. Yaptıkları egzersizler, tamamladıkları programlar kaydedilecek ve bu sayede kullanıcıya yeni öneriler sunulabilecek. Chatbot müşteri deneyimini ve memnuniyetini arttırmak amacıyla, uygun sınırlar ve limitler kullanılarak yönlendirilecek. 
+	Sistem kullanıcıyı tanıdıktan sonra ve ihtiyaçlarını anladıktan sonra; sadece tek bir program yerine, birkaç program oluşturacak (program destesi oluşturacak). Bu program destesinde programlar hiyerarşik olarak, zorluk seviyesine göre sıralanacak. Kullanıcının verilen programa yeterlilik sağlayamaması durumunda; sistem arkaplandaki sıralanmış program destesinden, zorluk seviyesine göre bir adım daha kolay olan programı önerecek (if BaşarısızTekrarSayısı==3: yeni ve bir aşama daha kolay program öner). Ek olarak programın kullanıcıya kolay gelmesi durumunda; bunu sisteme bildirebilmesi için bir 'program kolay geldi!' butonu/switchi eklenebilir. Bu butonun kullanımı durumunda sistem, mevcut programın kullanıcıya kolay geldiğini anlayarak program destesinden bir aşama üst zorluktaki programı kullanıcıya sunmalı.
+	Postür/görüntü analizi özelliği beslenme modülünde bulunmayacak. Sadece Postür, Kas gelişimi.
+	Chatbot kullanımı tüm kullanıcı tipleri için aynı olacak. 
+	Sadece Premium kullanıcılar canlı görüntü/postür analizi özelliğini kullanabilecek. Ek olarak premium kullanıcılarda puanlama sistemi gibi özellikler aktif olacak. Premium kullanıcıların puanlama sistemi, programa gösterdikleri istikrar bazında ölçülecek. Verilen görevleri (programı/programın aşamalarını) günü gününe tamamlayan, başarıyla ilerleme kaydeden, istikrar sağlayan kullanıcılar 1/5 aralığında yıldız kazanacak. 
+	Premium kullanıcılara özel olarak 'disiplin' modu seçeneği bulunacak. Bu seçeneğin aktif olduğu durumda sistem, görüntü/postür analizini kullanarak kullanıcıya hareketleri kamera karşısında yapma zorunluluğu bulunduracak. Programın ilerleyebilmesi için, sistem kamera yoluyla kullanıcıyı izleyerek bizzat teyit edecek. Aksi takdirde programda ilerleme kaydedilmeyecek. 
+	'disiplin' modu özelliği ücretsiz kullanıcıların kullanımına açık olmayacak.
+
+	Yeni özellik: Streak (istikrar ölçümü ve kullanıcı deneyimini artırmak için.)
+	Yeni özellik: Forum, kullanıcılar birbirleri arasında etkileşim kurabilmeli. Feedback'ler ve before-after'lar için.
+]
+==================================================================
+==================================================================
+
+proje transkriptinden kaldırılan bölümler:
+
+1) Calisthenics (tamamı)
+
+2) "Her türlü yiyecek verisini eklemeye çalışacağız" (Bu kapsam "Evde en çok bulunan temel 30-40 besin maddesinden oluşan optimize bir havuz kullanılacaktır" şeklinde daraltıldı)
+
+3) Sistem kesin olarak free ve Premium barındıracak.
+
+4) Forum (kullanıcı etkileşimi ve before - after) / İPTAL. Forum yerine, ana sayfada sadece bizim belirlediğimiz 3-4 tane sahte/statik "Başarı Hikayesi" (Testimonial) kartı konacak. Hocaya "Gelecek vizyonumuzda burayı aktif bir topluluk forumuna çevirmek var" deriz. Ama kodlamayacağız.
+
+5) Tarayıcı Tabanlı AI (Edge AI):
+"Premium kullanıcılardaki Disiplin Modu (Görüntü İşleme), sunucu masrafını ve video gecikmesini (latency) sıfıra indirmek amacıyla doğrudan kullanıcının tarayıcısında (MediaPipe aracılığıyla) çalışacaktır."
+
+6) Bağlamsal (RAG) Chatbot:
+"Chatbot sadece genel sorulara cevap veren bir araç değil; kullanıcının veritabanındaki vücut tipini ve son antrenman başarı oranını okuyarak, kişiye özel (bağlamsal) geri bildirim veren bir asistan olacaktır."
+
+7) Yapay Zeka Mimari Yönetimi:
+"Proje, yapay zeka kod asistanları kullanılarak çevik (Agile) bir şekilde geliştirilecek; kodlama standartlarının bozulmaması için tüm kompleks mimari promptlar tek bir yönetici mimar tarafından onaylanarak sisteme entegre edilecektir."
