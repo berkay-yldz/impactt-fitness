@@ -15,7 +15,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    await adminDb.collection("users").doc(uid).update({ isPremium: true });
+    await adminDb
+      .collection("users")
+      .doc(uid)
+      .set({ isPremium: true }, { merge: true });
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("upgrade-premium error:", error);
