@@ -1,11 +1,11 @@
-import Auth from "./pages/Auth"
+import Onboarding from "./pages/Onboarding"
 import { Toaster } from "@/components/ui/sonner"
 
 export default function App() {
   return (
     <>
-      <Auth />
-      {/* Tüm uygulamada bildirimlerin çalışmasını sağlayan motor: */}
+      {/* Geçici olarak Auth yerine Onboarding ekranını gösteriyoruz */}
+      <Onboarding />
       <Toaster theme="dark" position="bottom-right" />
     </>
   )
