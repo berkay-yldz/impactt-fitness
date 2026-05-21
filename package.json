@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.9",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/pose": "^0.5.1675469404",
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/vite": "^4.3.0",
     "class-variance-authority": "^0.7.1",
