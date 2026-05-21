@@ -20,13 +20,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Auth />} />
         
-        {/* Sadece Giriş Yapanlar */}
+        {/* Sadece Giriş Yapan Ücretsiz/Premium Kullanıcılar */}
         <Route path="/onboarding" element={<PrivateRoute><Onboarding /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/muscle" element={<PrivateRoute><Muscle /></PrivateRoute>} />
         <Route path="/nutrition" element={<PrivateRoute><Nutrition /></PrivateRoute>} />
         
-        {/* Sadece Premium Olanlar */}
+        {/* SADECE PREMIUM Olanlar */}
         <Route path="/posture" element={<PremiumRoute><Posture /></PremiumRoute>} />
         <Route path="/discipline" element={<PremiumRoute><Discipline /></PremiumRoute>} />
       </Routes>
