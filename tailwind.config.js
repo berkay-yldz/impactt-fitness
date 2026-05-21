@@ -16,13 +16,13 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         
-        // YENİ PREMIUM NEON ZÜMRÜT PALETİ
+        // IMPACT ANAYASASI: TURUNCU (ORANGE) TEMA
         impact: {
-          dark: "#09090B",     /* Çok derin siyah (Arka plan) */
-          surface: "#18181B",  /* Koyu füme (Kartlar) */
-          primary: "#10B981",  /* Zümrüt Yeşili (Ana butonlar, Streak) */
-          secondary: "#059669",/* Koyu Zümrüt (Hover efektleri) */
-          accent: "#8B5CF6",   /* Neon Mor (Yapay Zeka detayları) */
+          dark: "#0a0a0a",     /* Derin Siyah Zemin */
+          surface: "#171717",  /* Kart ve Yüzey Rengi */
+          primary: "#f97316",  /* Ana Turuncu (Orange 500) */
+          secondary: "#ea580c",/* Koyu Turuncu Hover (Orange 600) */
+          accent: "#fdba74",   /* Açık Turuncu Detaylar (Orange 300) */
         },
       },
       borderRadius: {
