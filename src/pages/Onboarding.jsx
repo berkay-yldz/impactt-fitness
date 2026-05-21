@@ -1,9 +1,12 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { ArrowRight, ArrowLeft, Flame, Dumbbell, Activity, Target, TrendingUp, Zap } from "lucide-react"
+import { useAuth } from "@/context/AuthContext" // İLİŞKİ: Global Context bağlandı
+import { createUserProfile } from "@/services/dbService" // İLİŞKİ: Veritabanı servisi bağlandı
 
 const variants = {
   enter: (direction) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
@@ -14,6 +17,8 @@ const variants = {
 export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
+  const navigate = useNavigate()
+  const { currentUser } = useAuth() // İLİŞKİ: Giriş yapan kullanıcının verisi alındı
   
   const [formData, setFormData] = useState({
     age: "", weight: "", height: "", fitnessGoal: "", programLevel: ""
@@ -22,9 +27,30 @@ export default function Onboarding() {
   const nextStep = () => { setDirection(1); setStep((s) => s + 1) }
   const prevStep = () => { setDirection(-1); setStep((s) => s - 1) }
 
-  const finishOnboarding = () => {
-    toast.success("Profilin Başarıyla Hazırlandı!", { description: "Yapay zeka koçun kişisel programını oluşturuyor..." })
-    setTimeout(() => alert("Gün 4'te Dashboard'a yönlendirileceksin!"), 1500)
+  const finishOnboarding = async () => {
+    try {
+      // İLİŞKİ: Anayasadaki veri yapısına %100 uygun nesne paketlendi
+      const profileData = {
+        email: currentUser.email,
+        displayName: currentUser.email.split('@')[0],
+        age: Number(formData.age),
+        weight: Number(formData.weight),
+        height: Number(formData.height),
+        fitnessGoal: formData.fitnessGoal,
+        programLevel: formData.programLevel,
+        isPremium: currentUser.isPremium,
+        createdAt: new Date().toISOString(),
+        streak: 0
+      }
+
+      // İLİŞKİ: Firestore servisi çağrıldı
+      await createUserProfile(currentUser.uid, profileData)
+      
+      toast.success("Profilin Başarıyla Hazırlandı!", { description: "Yapay zeka koçun kişisel programını oluşturuyor..." })
+      setTimeout(() => navigate('/dashboard'), 1500) 
+    } catch (err) {
+      toast.error("Profil kaydedilirken hata oluştu.")
+    }
   }
 
   const SelectionCard = ({ icon: Icon, title, desc, value, field }) => {
@@ -34,15 +60,15 @@ export default function Onboarding() {
         onClick={() => setFormData({ ...formData, [field]: value })}
         className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
           isSelected 
-            ? "border-impact-cyan bg-impact-cyan/10 shadow-[0_0_15px_rgba(6,182,212,0.1)]" 
-            : "border-zinc-800 bg-impact-surface hover:border-impact-cyan/50"
+            ? "border-impact-primary bg-impact-primary/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+            : "border-zinc-800 bg-impact-surface hover:border-impact-primary/50"
         }`}
       >
-        <div className={`p-3 rounded-lg ${isSelected ? "bg-impact-cyan text-black" : "bg-impact-dark text-zinc-400"}`}>
+        <div className={`p-3 rounded-lg ${isSelected ? "bg-impact-primary text-black" : "bg-impact-dark text-zinc-400"}`}>
           <Icon size={24} />
         </div>
         <div className="text-left">
-          <h3 className={`font-bold ${isSelected ? "text-impact-cyan" : "text-white"}`}>{title}</h3>
+          <h3 className={`font-bold ${isSelected ? "text-impact-primary" : "text-white"}`}>{title}</h3>
           <p className="text-sm text-zinc-400">{desc}</p>
         </div>
       </div>
@@ -50,7 +76,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-impact-dark flex flex-col items-center justify-center p-4 selection:bg-impact-cyan/30 overflow-hidden">
+    <div className="min-h-screen bg-impact-dark flex flex-col items-center justify-center p-4 selection:bg-impact-primary/30 overflow-hidden">
       <div className="w-full max-w-md">
         
         <div className="mb-8 space-y-2">
@@ -60,7 +86,7 @@ export default function Onboarding() {
           </div>
           <div className="h-2 w-full bg-impact-surface rounded-full overflow-hidden border border-zinc-800">
             <motion.div 
-              className="h-full bg-gradient-to-r from-impact-cyan to-impact-blue"
+              className="h-full bg-gradient-to-r from-impact-primary to-impact-secondary"
               initial={{ width: 0 }}
               animate={{ width: `${(step / 3) * 100}%` }}
               transition={{ duration: 0.3, ease: "easeOut" }}
@@ -80,20 +106,20 @@ export default function Onboarding() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-zinc-400 ml-1">Yaş</label>
-                    <Input type="number" placeholder="Örn: 23" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-cyan" required />
+                    <Input type="number" placeholder="Örn: 23" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-primary" required />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium text-zinc-400 ml-1">Kilo (kg)</label>
-                      <Input type="number" placeholder="Örn: 78" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-cyan" required />
+                      <Input type="number" placeholder="Örn: 78" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-primary" required />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-zinc-400 ml-1">Boy (cm)</label>
-                      <Input type="number" placeholder="Örn: 182" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-cyan" required />
+                      <Input type="number" placeholder="Örn: 182" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} className="mt-1 bg-impact-surface border-zinc-800 text-white text-lg h-12 focus-visible:ring-impact-primary" required />
                     </div>
                   </div>
                 </div>
-                <Button onClick={nextStep} disabled={!formData.age || !formData.weight || !formData.height} className="w-full bg-impact-cyan hover:bg-impact-blue text-black font-bold text-lg h-12 mt-4 transition-all">
+                <Button onClick={nextStep} disabled={!formData.age || !formData.weight || !formData.height} className="w-full bg-impact-primary hover:opacity-90 text-black font-bold text-lg h-12 mt-4 transition-all">
                   İleri <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
@@ -114,7 +140,7 @@ export default function Onboarding() {
                   <Button onClick={prevStep} variant="outline" className="w-1/3 bg-transparent border-zinc-800 text-white hover:bg-impact-surface h-12">
                     <ArrowLeft className="mr-2 h-5 w-5" /> Geri
                   </Button>
-                  <Button onClick={nextStep} disabled={!formData.fitnessGoal} className="w-2/3 bg-impact-cyan hover:bg-impact-blue text-black font-bold text-lg h-12 transition-all">
+                  <Button onClick={nextStep} disabled={!formData.fitnessGoal} className="w-2/3 bg-impact-primary hover:opacity-90 text-black font-bold text-lg h-12 transition-all">
                     İleri <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </div>
@@ -136,7 +162,7 @@ export default function Onboarding() {
                   <Button onClick={prevStep} variant="outline" className="w-1/3 bg-transparent border-zinc-800 text-white hover:bg-impact-surface h-12">
                     <ArrowLeft className="mr-2 h-5 w-5" /> Geri
                   </Button>
-                  <Button onClick={finishOnboarding} disabled={!formData.programLevel} className="w-2/3 bg-impact-cyan hover:bg-impact-blue text-black font-bold text-lg h-12 transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                  <Button onClick={finishOnboarding} disabled={!formData.programLevel} className="w-2/3 bg-impact-primary hover:opacity-90 text-black font-bold text-lg h-12 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)]">
                     Profili Tamamla
                   </Button>
                 </div>
