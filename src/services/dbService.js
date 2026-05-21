@@ -1,10 +1,7 @@
 export const createUserProfile = async (uid, data) => {
-  // Eran buraya gerçek Firestore setDoc kodunu yazacak
-  console.log("dbService: Firestore'a yazılan profil verisi:", uid, data);
-  return { success: true };
+  // TODO: Eran, Firestore (setDoc) profil oluşturma kodunu buraya yazacak
 };
 
 export const getUserProfile = async (uid) => {
-  console.log("dbService: Profil çekiliyor", uid);
-  return { isPremium: false, programLevel: "beginner" };
+  // TODO: Eran, Firestore (getDoc) profil çekme kodunu buraya yazacak
 };

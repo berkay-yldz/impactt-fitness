@@ -1,16 +1,11 @@
 export const loginUser = async (email, password) => {
-  // Eran buraya gerçek Firebase Auth kodunu yazacak
-  console.log("authService: Giriş isteği alındı", email);
-  return { success: true };
+  // TODO: Eran, Firebase Auth (signInWithEmailAndPassword) kodlarını buraya yazacak
 };
 
 export const registerUser = async (email, password, displayName) => {
-  // Eran buraya gerçek Firebase Auth kayıt kodunu yazacak
-  console.log("authService: Kayıt isteği alındı", email, displayName);
-  return { success: true };
+  // TODO: Eran, Firebase Auth (createUserWithEmailAndPassword) kodlarını buraya yazacak
 };
 
 export const logoutUser = async () => {
-  console.log("authService: Çıkış yapıldı");
-  return { success: true };
+  // TODO: Eran, Firebase Auth (signOut) kodunu buraya yazacak
 };
