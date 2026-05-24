@@ -1,15 +1,27 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { onAuthChange } from "@/services/authService";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Geliştirme aşaması için sahte bir giriş yapmış kullanıcı oluşturduk
-  // isPremium değerini true/false yaparak PremiumRoute testlerini yapabilirsin
-  const [currentUser, setCurrentUser] = useState({
-    uid: "test-user-123",
-    email: "emrullah@impact.ai",
-    isPremium: false 
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-impact-dark">
+        <div className="h-12 w-12 rounded-full border-4 border-impact-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ currentUser }}>
@@ -18,4 +30,11 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (ctx === null) {
+    throw new Error("useAuth() AuthProvider içinde kullanılmalı");
+  }
+  return ctx;
+}
