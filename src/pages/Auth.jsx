@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dumbbell, Mail, Lock, User } from "lucide-react"
-import { toast } from "sonner"
-import { loginUser, registerUser } from "@/services/authService" // İLİŞKİ: Servis import edildi
+import { toast } from "sonner" // <-- İŞTE O EKSİK OLAN HAYAT KURTARICI IMPORT
+import { loginUser, registerUser } from "@/services/authService"
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false)
@@ -19,13 +19,13 @@ export default function Auth() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const res = await loginUser(email, password) // İLİŞKİ: Servis tetiklendi
+      const res = await loginUser(email, password)
       if (res.success) {
         toast.success("Giriş Başarılı!", { description: "Uygulama paneline yönlendiriliyorsunuz." })
         navigate('/dashboard')
       }
     } catch (err) {
-      toast.error("Giriş başarısız oldu.")
+      toast.error("Giriş başarısız oldu. Şifreni kontrol et.")
     } finally {
       setIsLoading(false)
     }
@@ -35,13 +35,13 @@ export default function Auth() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const res = await registerUser(email, password, displayName) // İLİŞKİ: Servis tetiklendi
+      const res = await registerUser(email, password, displayName)
       if (res.success) {
         toast.success("Kayıt Başarılı!", { description: "Lütfen profil anketini tamamla." })
         navigate('/onboarding')
       }
     } catch (err) {
-      toast.error("Kayıt oluşturulamadı.")
+      toast.error("Kayıt başarısız. Bu e-posta zaten kullanımda olabilir.")
     } finally {
       setIsLoading(false)
     }
@@ -51,11 +51,11 @@ export default function Auth() {
     <div className="min-h-screen bg-impact-dark flex flex-col items-center justify-center p-4 selection:bg-impact-primary/30">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-impact-surface border border-zinc-800 mb-4 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-impact-surface border border-zinc-800 mb-4 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
             <Dumbbell className="w-8 h-8 text-impact-primary" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">
-            IMPACT <span className="text-transparent bg-clip-text bg-gradient-to-r from-impact-primary to-impact-secondary">AI</span>
+            IMPACT <span className="text-impact-primary">AI</span>
           </h1>
           <p className="text-sm text-zinc-400">Sınırlarını zorlamaya hazır mısın?</p>
         </div>
@@ -77,7 +77,7 @@ export default function Auth() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                   <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-10 bg-impact-dark border-zinc-800 text-white h-12 focus-visible:ring-impact-primary" required />
                 </div>
-                <Button type="submit" className="w-full h-12 mt-2 bg-impact-primary hover:opacity-90 text-black font-bold text-lg transition-all" disabled={isLoading}>
+                <Button type="submit" className="w-full h-12 mt-2 bg-impact-primary hover:bg-impact-secondary text-black font-bold text-lg transition-all" disabled={isLoading}>
                   {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
                 </Button>
               </form>
@@ -97,7 +97,7 @@ export default function Auth() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                   <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-10 bg-impact-dark border-zinc-800 text-white h-12 focus-visible:ring-impact-primary" required />
                 </div>
-                <Button type="submit" className="w-full h-12 mt-2 bg-impact-primary hover:opacity-90 text-black font-bold text-lg transition-all" disabled={isLoading}>
+                <Button type="submit" className="w-full h-12 mt-2 bg-impact-primary hover:bg-impact-secondary text-black font-bold text-lg transition-all" disabled={isLoading}>
                   {isLoading ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
                 </Button>
               </form>
