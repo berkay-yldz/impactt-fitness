@@ -11,6 +11,10 @@ import {
   serverTimestamp 
 } from "firebase/firestore";
 
+// ============================================================================
+// 1. VERİTABANI (KALICI HAFIZA) İŞLEMLERİ
+// ============================================================================
+
 /**
  * Kullanıcının bir egzersizdeki sonucunu (başarılı/başarısız) veritabanına kaydeder.
  */
@@ -32,35 +36,26 @@ export const recordExerciseResult = async (userId, exerciseId, success, db) => {
 
 /**
  * Kullanıcının belirli bir egzersizde art arda 3 kez başarısız olup olmadığını kontrol eder.
+ * (Not: Bu fonksiyon genel antrenman geçmişi içindir, canlı kamera anında kullanılmaz.)
  */
 export const checkFailureThreshold = async (userId, exerciseId, db) => {
   try {
     const logRef = collection(db, "users", userId, "exerciseLog");
-    
-    // Kullanıcının bu egzersizdeki en son 3 denemesini tarihe göre ters sıralı getir
     const q = query(
       logRef,
       where("exerciseId", "==", exerciseId),
       orderBy("timestamp", "desc"),
       limit(3)
     );
-
     const snapshot = await getDocs(q);
 
-    // Eğer henüz 3 kere denenmemişse, doğal olarak 3 kez başarısız olmamıştır
-    if (snapshot.size < 3) {
-      return false;
-    }
+    if (snapshot.size < 3) return false;
 
     let failureCount = 0;
     snapshot.forEach((doc) => {
-      // Eğer success değeri false ise başarısızlık sayacını artır
-      if (doc.data().success === false) {
-        failureCount++;
-      }
+      if (doc.data().success === false) failureCount++;
     });
 
-    // Son 3 denemenin 3'ü de başarısızsa true dön (Düşürme tetiklenecek)
     return failureCount === 3;
   } catch (error) {
     console.error("Eşik kontrolü sırasında hata oluştu:", error);
@@ -69,19 +64,17 @@ export const checkFailureThreshold = async (userId, exerciseId, db) => {
 };
 
 /**
- * Kullanıcının program seviyesini bir alt zorluğa çeker.
+ * Kullanıcının program seviyesini bir alt zorluğa çeker ve veritabanına kaydeder.
  */
 export const downgradeProgramLevel = async (userId, currentLevel, db) => {
-  // Seviye düşürme haritası (Kural: advanced -> intermediate -> beginner)
   const levelMap = {
     advanced: "intermediate",
     intermediate: "beginner",
-    beginner: "beginner" // En alt seviyede ise aynı kalır
+    beginner: "beginner" 
   };
 
   const newLevel = levelMap[currentLevel];
 
-  // Eğer zaten beginner ise gereksiz veritabanı yazma işlemi yapma
   if (newLevel === currentLevel) {
     console.log("Kullanıcı zaten en alt seviyede (beginner), düşürülemez.");
     return currentLevel;
@@ -98,4 +91,64 @@ export const downgradeProgramLevel = async (userId, currentLevel, db) => {
     console.error("Seviye düşürme işlemi başarısız oldu:", error);
     return null;
   }
+};
+
+// ============================================================================
+// 2. CANLI KAMERA (EDGE AI) SIFIR GECİKME MEKANİZMASI
+// ============================================================================
+
+/**
+ * IMPACT AI - Canlı Adaptif Zorluk Motoru
+ * Kameradan saniyede 30 kez gelen (good/bad) verilerini RAM üzerinde sayar.
+ * 3 Hata olduğunda veritabanı fonksiyonunu (downgradeProgramLevel) tetikler.
+ */
+export const createLiveAdaptiveLogic = (userId, db, initialLevel = "intermediate") => {
+  let consecutiveFailures = 0;
+  let currentLevel = initialLevel;
+  let isDowngrading = false; // Veritabanı yazılırken çoklu tetiklenmeyi önler (Lock)
+
+  return async (performanceStatus) => {
+    // İşlem devam ediyorsa veya zaten en alt seviyedeyse hiç yorma
+    if (isDowngrading) return { levelChanged: false, currentLevel, message: "Seviye güncelleniyor..." };
+    if (currentLevel === "beginner" && performanceStatus === "bad") {
+      return { levelChanged: false, currentLevel, message: "Pes etme, başlangıç seviyesindesin!" };
+    }
+
+    if (performanceStatus === "good") {
+      consecutiveFailures = 0;
+      return { levelChanged: false, currentLevel, message: "Aynen böyle devam, form kusursuz!" };
+    }
+
+    if (performanceStatus === "bad") {
+      consecutiveFailures += 1;
+
+      // 3 Kere Hata Yapıldıysa Kalıcı Olarak Veritabanını Güncelle!
+      if (consecutiveFailures >= 3) {
+        isDowngrading = true; // DB işlemini kilitle
+        
+        const newLevel = await downgradeProgramLevel(userId, currentLevel, db);
+        
+        consecutiveFailures = 0; // Sayacı sıfırla
+        isDowngrading = false;   // Kilidi aç
+
+        if (newLevel && newLevel !== currentLevel) {
+          currentLevel = newLevel;
+          return { 
+            levelChanged: true, 
+            currentLevel, 
+            message: `⚠️ 3 Kere formu bozdun! Sakatlanmamak için seviyen kalıcı olarak ${newLevel.toUpperCase()} yapıldı.` 
+          };
+        }
+      }
+
+      // Hata yaptı ama henüz 3 olmadı (1/3, 2/3)
+      return {
+        levelChanged: false,
+        currentLevel,
+        message: `Form bozuk! (Dikkat: ${consecutiveFailures}/3 Hata)`
+      };
+    }
+    
+    return { levelChanged: false, currentLevel, message: "" };
+  };
 };

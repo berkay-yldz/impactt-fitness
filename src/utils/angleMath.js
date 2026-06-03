@@ -90,3 +90,39 @@ export const analyzePlankForm = (landmarks) => {
     return { status: "good", feedback: "Mükemmel form!" };
   }
 };
+
+// ============================================================================
+// GÜN 4-5: AKILLI REP SAYACI ALGORİTMASI (Closure Factory Pattern)
+// ============================================================================
+
+/**
+ * Hareketin state'ini (fazını) ve tekrar sayısını hafızada tutan sayaç fabrikası.
+ * @param {number} thresholdUp - Tekrarın "Yukarıda" sayılacağı açı sınırı
+ * @param {number} thresholdDown - Tekrarın "Aşağıda" sayılacağı açı sınırı
+ * @returns {Object} - Sayacı yönetmek için metotlar barındıran nesne
+ */
+export const createRepCounter = (thresholdUp, thresholdDown) => {
+  let repCount = 0;
+  let phase = null;
+
+  return {
+    processAngle: (currentAngle) => {
+      // 1. Açı aşağı inme sınırının altına düştüğünde (Kullanıcı çömeldi/indi)
+      if (currentAngle <= thresholdDown) {
+        phase = "down";
+      } 
+      // 2. Daha önce nizami inilmişse ve açı yukarı çıkma sınırını aşarsa (Kalkış tamamlandı)
+      else if (phase === "down" && currentAngle >= thresholdUp) {
+        phase = "up";
+        repCount++; // 1 Nizami tekrar kazanıldı!
+      }
+      
+      return { repCount, phase };
+    },
+    reset: () => {
+      repCount = 0;
+      phase = null;
+    },
+    getCount: () => repCount
+  };
+};
