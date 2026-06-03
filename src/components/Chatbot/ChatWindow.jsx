@@ -1,142 +1,123 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, X, Sparkles } from "lucide-react";
-import ChatBubble from "./ChatBubble";
+// 🚨 BUG ÇÖZÜLDÜ: Bot ikonu import edildi
+import { Send, X, Sparkles, Bot } from "lucide-react"; 
 import { useAuth } from "@/context/AuthContext";
 
 export default function ChatWindow({ isOpen, onClose }) {
-  const { currentUser } = useAuth();
   const [messages, setMessages] = useState([
-    { role: "ai", content: "Selam! Ben Impact AI. Antrenman programın, beslenme düzenin veya postürün hakkında ne sormak istersin?" }
+    { role: "system", content: "Merhaba! Ben Impact AI Koçun. Antrenman ve beslenme hedeflerine ulaşman için buradayım. Sana nasıl yardımcı olabilirim?" }
   ]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const { currentUser } = useAuth();
 
-  // Yeni mesaj geldiğinde otomatik en alta kaydır
+  // Otomatik aşağı kaydırma mekanizması
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isTyping]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMsg = input.trim();
+    const userMessage = input.trim();
+    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
-    setIsLoading(true);
+    setIsTyping(true);
 
     try {
-      // İLİŞKİ: Eran'ın Vercel Serverless fonksiyonuna veri fırlatıyoruz
-      const res = await fetch("/api/chat-rag", {
+      const response = await fetch("/api/chat-rag", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: currentUser?.uid, message: userMsg })
+        body: JSON.stringify({
+          uid: currentUser?.uid || "test-user-uid",
+          message: userMessage
+        })
       });
-      
-      if (!res.ok) throw new Error("API Hatası");
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", content: data.reply }]);
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: "system", content: data.reply || "Sistemde bir kopukluk oldu kanka, tekrar dener misin?" }]);
     } catch (error) {
-      // Backend hazır olana kadar arayüzün çökmesini engellemek için yedek (fallback) yanıt
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "ai", content: "Bağlantı kuruluyor... (Eran'ın API'si henüz yanıt vermedi ama arayüzümüz mermi gibi çalışıyor! 🚀)" }]);
-        setIsLoading(false);
-      }, 1500);
+      setMessages(prev => [...prev, { role: "system", content: "Şu an sunuculara ulaşamıyorum. Vercel bağlantısını kontrol et." }]);
     } finally {
-      setIsLoading(false);
+      setIsTyping(false);
     }
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Arka Plan Karartması (Mobilde) */}
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-          />
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          className="fixed bottom-20 right-4 sm:right-8 w-[90vw] sm:w-[400px] h-[500px] bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden transition-colors duration-300"
+        >
+          {/* Header */}
+          <div className="bg-impact-primary p-4 flex items-center justify-between text-white">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              <span className="font-bold tracking-tight">Impact AI Koç</span>
+            </div>
+            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-          {/* Sağdan Kayarak Açılan Chat Paneli */}
-          <motion.div
-            initial={{ x: "100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[400px] bg-impact-dark border-l border-zinc-800 shadow-2xl flex flex-col"
-          >
-            {/* Üst Header */}
-            <div className="h-16 border-b border-zinc-800 bg-impact-surface px-4 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
-                {/* Berkay'ın yüklediği asset'i profil fotosu olarak kullanıyoruz */}
-                <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
-                  <img src="/assets/coach-idle.webp" alt="AI Coach" className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white tracking-tight flex items-center gap-1">
-                    IMPACT KOÇ <Sparkles className="w-3 h-3 text-impact-primary" />
-                  </h3>
-                  <span className="text-[10px] text-impact-primary font-medium uppercase tracking-wider">Yapay Zeka Destekli</span>
+          {/* Mesaj Listesi */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-zinc-50 dark:bg-zinc-900/50">
+            {messages.map((msg, index) => (
+              <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-impact-primary text-white rounded-tr-sm"
+                    : "bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-tl-sm shadow-sm"
+                }`}>
+                  {msg.content}
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-800">
-                <X className="w-5 h-5" />
+            ))}
+            
+            {/* AI Yazıyor Göstergesi */}
+            {isTyping && (
+              <div className="flex justify-start items-center gap-2 text-zinc-400 dark:text-zinc-500">
+                <Bot size={16} className="text-impact-primary animate-pulse" />
+                <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-4 rounded-2xl rounded-tl-sm flex gap-1.5 shadow-sm">
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
+                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Alanı */}
+          <div className="p-4 bg-white dark:bg-impact-surface border-t border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center gap-2 relative">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Yapay zeka koçuna sor..."
+                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full px-5 py-3 text-sm focus:outline-none focus:border-impact-primary text-zinc-800 dark:text-zinc-200 transition-colors"
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                className="absolute right-2 p-2 bg-impact-primary text-white rounded-full hover:bg-impact-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Mesajlaşma Alanı */}
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-impact-dark/50">
-              {messages.map((msg, idx) => (
-                <ChatBubble key={idx} role={msg.role} content={msg.content} />
-              ))}
-              
-              {/* Yazıyor... Animasyonu */}
-              {isLoading && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start mb-4">
-                  <div className="flex gap-3 max-w-[80%]">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-impact-primary">
-                      <Bot size={16} />
-                    </div>
-                    <div className="px-5 py-4 rounded-2xl bg-impact-surface border border-zinc-800 rounded-tl-none flex items-center gap-1.5">
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-2 h-2 rounded-full bg-zinc-500" />
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-2 h-2 rounded-full bg-zinc-500" />
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-2 h-2 rounded-full bg-zinc-500" />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Alanı */}
-            <div className="p-4 bg-impact-surface border-t border-zinc-800">
-              <form onSubmit={handleSend} className="relative flex items-center">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Koçuna bir soru sor..."
-                  className="w-full bg-impact-dark border border-zinc-700 rounded-full py-3 pl-4 pr-12 text-sm text-white focus:outline-none focus:border-impact-primary focus:ring-1 focus:ring-impact-primary transition-all placeholder:text-zinc-500"
-                  disabled={isLoading}
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="absolute right-1.5 p-2 bg-impact-primary text-black rounded-full hover:bg-impact-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        </>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
