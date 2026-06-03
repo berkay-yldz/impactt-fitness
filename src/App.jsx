@@ -26,8 +26,10 @@ export default function App() {
         <Route path="/muscle" element={<PrivateRoute><Muscle /></PrivateRoute>} />
         <Route path="/nutrition" element={<PrivateRoute><Nutrition /></PrivateRoute>} />
         
-        {/* SADECE PREMIUM Olanlar */}
-        <Route path="/posture" element={<PremiumRoute><Posture /></PremiumRoute>} />
+        {/* DÜZELTME: Postür modülü ücretsizdir, listeler herkese açıktır! */}
+        <Route path="/posture" element={<PrivateRoute><Posture /></PrivateRoute>} />
+        
+        {/* SADECE PREMIUM Olanlar (Kamera ve Yapay Zeka Analizi) */}
         <Route path="/discipline" element={<PremiumRoute><Discipline /></PremiumRoute>} />
       </Routes>
       <Toaster theme="dark" position="bottom-right" />
