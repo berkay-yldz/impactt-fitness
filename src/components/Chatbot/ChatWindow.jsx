@@ -28,6 +28,12 @@ export default function ChatWindow({ isOpen, onClose }) {
     const userMessage = input.trim();
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setInput("");
+
+    if (!currentUser?.uid) {
+      setMessages(prev => [...prev, { role: "system", content: "Önce giriş yapman gerekiyor. AI Koç sadece oturum açmış kullanıcılara cevap verir." }]);
+      return;
+    }
+
     setIsTyping(true);
 
     try {
@@ -35,15 +41,29 @@ export default function ChatWindow({ isOpen, onClose }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          uid: currentUser?.uid || "test-user-uid",
+          uid: currentUser.uid,
           message: userMessage
         })
       });
 
       const data = await response.json();
-      setMessages(prev => [...prev, { role: "system", content: data.reply || "Sistemde bir kopukluk oldu kanka, tekrar dener misin?" }]);
+
+      if (!response.ok) {
+        const errMsg = data?.error
+          ? `Hata: ${data.error}`
+          : `Sunucu ${response.status} kodu döndü.`;
+        setMessages(prev => [...prev, { role: "system", content: errMsg }]);
+        return;
+      }
+
+      if (!data.reply) {
+        setMessages(prev => [...prev, { role: "system", content: "AI boş cevap döndürdü, tekrar dener misin?" }]);
+        return;
+      }
+
+      setMessages(prev => [...prev, { role: "system", content: data.reply }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: "system", content: "Şu an sunuculara ulaşamıyorum. Vercel bağlantısını kontrol et." }]);
+      setMessages(prev => [...prev, { role: "system", content: "Bağlantı sorunu — npm run dev'i restart et veya internet bağlantını kontrol et." }]);
     } finally {
       setIsTyping(false);
     }
