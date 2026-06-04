@@ -7,7 +7,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Postür (Premium)", path: "/posture", icon: Activity, premium: true },
+    { name: "Postür", path: "/posture", icon: Activity }, // DÜZELTME: Premium etiketi ve taç ikonu kaldırıldı
     { name: "Kas Gelişimi", path: "/muscle", icon: Dumbbell },
     { name: "Beslenme", path: "/nutrition", icon: Utensils },
     { name: "Disiplin (Premium)", path: "/discipline", icon: Camera, premium: true },
