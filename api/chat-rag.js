@@ -3,32 +3,7 @@ import {
   getChatHistory,
   saveChatMessage,
 } from "./_lib/dbAdmin.js";
-
-// TODO(berkay): Hafta 2 Gun 1 — Berkay buildSystemPrompt(userProfile)'i
-// src/utils/buildSystemPrompt.js'de yayinlayinca asagidaki stub silinecek
-// ve "import { buildSystemPrompt } from '../src/utils/buildSystemPrompt.js'"
-// satiri eklenecek.
-function buildSystemPromptStub(profile) {
-  const goalContext = {
-    weight_loss: "Kalori acigi ve yag yakimini vurgula.",
-    muscle_gain: "Protein alimi ve progresif asiri yuku vurgula.",
-    endurance: "Kardiyo dayanikliligi ve toparlanmayi vurgula.",
-  }[profile?.fitnessGoal] || "";
-
-  return [
-    "Sen Impact Fitness uygulamasinin AI kocusun. Kullanici hakkinda su bilgilere sahipsin:",
-    `- Ad: ${profile?.displayName ?? "Sporcu"}`,
-    `- Yas: ${profile?.age ?? "?"}, Kilo: ${profile?.weight ?? "?"}kg, Boy: ${profile?.height ?? "?"}cm`,
-    `- Hedef: ${profile?.fitnessGoal ?? "belirtilmemis"}`,
-    `- Program seviyesi: ${profile?.programLevel ?? "beginner"}`,
-    `- Gunluk streak: ${profile?.streak ?? 0} gun`,
-    goalContext,
-    "Bu bilgileri kullanarak kisisellestirilmis, motive edici oneriler sun.",
-    "Yalnizca fitness, beslenme ve antrenman konularinda yardim et. Turkce cevap ver.",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
+import { buildSystemPrompt } from "../src/utils/promptBuilder.js";
 
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -56,7 +31,7 @@ export default async function handler(req, res) {
     const historyDesc = await getChatHistory(uid, 5);
     const historyChrono = historyDesc.slice().reverse();
 
-    const systemPrompt = buildSystemPromptStub(profile);
+    const systemPrompt = buildSystemPrompt(profile);
 
     const contents = historyChrono.map((m) => ({
       role: m.role === "user" ? "user" : "model",
