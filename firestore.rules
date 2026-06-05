@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Kullanici dokumani ve tum alt koleksiyonlari (badges, exerciseLog vb.)
+    // Yalnizca dokuman sahibi okuyup yazabilir.
+    // Admin SDK (server-side) rules bypass eder, bu nedenle cron-daily-email
+    // upgrade-premium ve chat-rag endpoint'leri etkilenmez.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null
+                        && request.auth.uid == userId;
+    }
+
+    // Sohbet gecmisi: yalnizca kullanicinin kendi alt koleksiyonu.
+    // Admin SDK yine bypass eder (chat-rag saveChatMessage).
+    match /chatHistory/{userId}/messages/{messageId} {
+      allow read, write: if request.auth != null
+                        && request.auth.uid == userId;
+    }
+
+    // Diger tum dokumanlar varsayilan olarak kapali.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
