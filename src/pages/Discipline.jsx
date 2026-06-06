@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Menu, LogOut, User as UserIcon, Flame, ShieldCheck, Lock, CalendarDays, Award } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
@@ -7,10 +7,12 @@ import Testimonials from "@/components/Testimonials/Testimonials";
 import { useAuth } from "@/context/AuthContext";
 import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
+import Lottie from "lottie-react"; // EKLENDİ: Lottie kütüphanesi
 
 export default function Discipline() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [fireAnimation, setFireAnimation] = useState(null); // EKLENDİ: Lottie verisini tutacak state
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +27,14 @@ export default function Discipline() {
     { id: "b3", title: "Azimli", desc: "10 Antrenman", isEarned: true, icon: Award },
     { id: "b4", title: "Demir İrade", desc: "30 Günlük Streak", isEarned: false, icon: Flame },
   ];
+
+  // EKLENDİ: public klasöründeki JSON dosyasını çekme işlemi
+  useEffect(() => {
+    fetch("/lottie/fire.json")
+      .then((res) => res.json())
+      .then((data) => setFireAnimation(data))
+      .catch((err) => console.error("Ateş animasyonu yüklenemedi:", err));
+  }, []);
 
   const handleLogout = async () => {
     try { await logoutUser(); navigate("/"); } catch (error) {}
@@ -65,9 +75,16 @@ export default function Discipline() {
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-impact-primary to-impact-secondary"></div>
                 <h3 className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Mevcut İstikrar Serisi</h3>
                 
-                <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="mb-2">
-                  <Flame className="w-24 h-24 text-impact-primary drop-shadow-[0_0_25px_rgba(249,115,22,0.5)]" fill="currentColor" />
-                </motion.div>
+                {/* GÜNCELLENDİ: Lottie Animasyon Alanı */}
+                <div className="w-32 h-32 mb-2 flex items-center justify-center drop-shadow-[0_0_25px_rgba(249,115,22,0.4)]">
+                  {fireAnimation ? (
+                    <Lottie animationData={fireAnimation} loop={true} className="w-full h-full object-contain" />
+                  ) : (
+                    <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
+                      <Flame className="w-24 h-24 text-impact-primary" fill="currentColor" />
+                    </motion.div>
+                  )}
+                </div>
                 
                 <div className="flex items-baseline gap-2">
                   <span className="text-7xl font-black tracking-tighter tabular-nums">{currentStreak}</span>

@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { ArrowRight, ArrowLeft, Flame, Dumbbell, Activity, Target, TrendingUp, Zap } from "lucide-react"
-import { useAuth } from "@/context/AuthContext" // İLİŞKİ: Global Context bağlandı
-import { createUserProfile } from "@/services/dbService" // İLİŞKİ: Veritabanı servisi bağlandı
+import { useAuth } from "@/context/AuthContext" 
+import { createUserProfile } from "@/services/dbService" 
 
 const variants = {
   enter: (direction) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
@@ -18,7 +18,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
   const navigate = useNavigate()
-  const { currentUser } = useAuth() // İLİŞKİ: Giriş yapan kullanıcının verisi alındı
+  const { currentUser } = useAuth() 
   
   const [formData, setFormData] = useState({
     age: "", weight: "", height: "", fitnessGoal: "", programLevel: ""
@@ -29,7 +29,6 @@ export default function Onboarding() {
 
   const finishOnboarding = async () => {
     try {
-      // İLİŞKİ: Anayasadaki veri yapısına %100 uygun nesne paketlendi
       const profileData = {
         email: currentUser.email,
         displayName: currentUser.email.split('@')[0],
@@ -43,7 +42,6 @@ export default function Onboarding() {
         streak: 0
       }
 
-      // İLİŞKİ: Firestore servisi çağrıldı
       await createUserProfile(currentUser.uid, profileData)
       
       toast.success("Profilin Başarıyla Hazırlandı!", { description: "Yapay zeka koçun kişisel programını oluşturuyor..." })
@@ -60,7 +58,7 @@ export default function Onboarding() {
         onClick={() => setFormData({ ...formData, [field]: value })}
         className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
           isSelected 
-            ? "border-impact-primary bg-impact-primary/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+            ? "border-impact-primary bg-impact-primary/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
             : "border-zinc-800 bg-impact-surface hover:border-impact-primary/50"
         }`}
       >
@@ -79,20 +77,24 @@ export default function Onboarding() {
     <div className="min-h-screen bg-impact-dark flex flex-col items-center justify-center p-4 selection:bg-impact-primary/30 overflow-hidden">
       <div className="w-full max-w-md">
         
-        <div className="mb-8 space-y-2">
-          <div className="flex justify-between text-sm font-medium text-zinc-400">
-            <span>Adım {step} / 3</span>
-            <span>% {Math.round((step / 3) * 100)}</span>
+        {/* --- YENİLENEN PROGRESS BAR BÖLÜMÜ --- */}
+        <div className="mb-8 space-y-3">
+          <div className="flex justify-between text-sm font-bold text-zinc-400">
+            <span className="text-white">Adım {step} <span className="text-zinc-500">/ 3</span></span>
+            <span className="text-impact-primary">% {Math.round((step / 3) * 100)}</span>
           </div>
-          <div className="h-2 w-full bg-impact-surface rounded-full overflow-hidden border border-zinc-800">
+          <div className="h-2.5 w-full bg-impact-surface rounded-full overflow-hidden border border-zinc-800/80 shadow-inner relative">
             <motion.div 
-              className="h-full bg-gradient-to-r from-impact-primary to-impact-secondary"
+              className="absolute top-0 left-0 h-full bg-impact-primary shadow-[0_0_10px_rgba(249,115,22,0.6)]"
               initial={{ width: 0 }}
               animate={{ width: `${(step / 3) * 100}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            />
+              transition={{ type: "spring", stiffness: 60, damping: 12 }}
+            >
+              <div className="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-white/30 to-transparent" />
+            </motion.div>
           </div>
         </div>
+        {/* -------------------------------------- */}
 
         <div className="relative min-h-[440px]">
           <AnimatePresence mode="wait" custom={direction}>

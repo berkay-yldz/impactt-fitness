@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, LogOut, User as UserIcon, Dumbbell, CheckCircle2, Circle, Trophy, Info, Activity } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
@@ -8,6 +8,7 @@ import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import confetti from "canvas-confetti"; 
+import Lottie from "lottie-react"; // EKLENDİ: Lottie kütüphanesi
 
 const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } } };
@@ -15,6 +16,7 @@ const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, 
 export default function Muscle() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [trophyAnimation, setTrophyAnimation] = useState(null); // EKLENDİ: Kupa animasyonu state'i
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -27,6 +29,14 @@ export default function Muscle() {
   ]);
   const [isAllCompleted, setIsAllCompleted] = useState(false);
   const [activeMuscleGroup, setActiveMuscleGroup] = useState("");
+
+  // EKLENDİ: public klasöründeki JSON dosyasını çekme işlemi
+  useEffect(() => {
+    fetch("/lottie/trophy.json")
+      .then((res) => res.json())
+      .then((data) => setTrophyAnimation(data))
+      .catch((err) => console.error("Kupa animasyonu yüklenemedi:", err));
+  }, []);
 
   // 🚀 UX DOKUNUŞU: İlerleme Yüzdesi Hesaplama
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
@@ -138,11 +148,22 @@ export default function Muscle() {
                       onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = `<span class="text-xs text-zinc-400 font-bold uppercase tracking-widest text-center">muscle-map.svg<br/><span class="text-[10px] lowercase text-impact-primary font-black">${activeMuscleGroup || "Seçim Bekleniyor"}</span></span>`; }}
                     />
                   </div>
+                  
+                  {/* GÜNCELLENDİ: Lottie Kupa Animasyonu */}
                   <AnimatePresence mode="wait">
                     {isAllCompleted ? (
-                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex items-center gap-3 text-impact-primary">
-                        <Trophy className="w-5 h-5 animate-bounce" />
-                        <div><p className="font-bold text-sm">Günün Kas Görevi Bitti!</p></div>
+                      <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 p-6 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-32 h-32 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                          {trophyAnimation ? (
+                            <Lottie animationData={trophyAnimation} loop={true} className="w-full h-full object-contain" />
+                          ) : (
+                            <Trophy className="w-16 h-16 text-impact-primary animate-bounce mx-auto" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-black text-lg text-white">Günün Kas Görevi Bitti!</p>
+                          <p className="text-xs text-zinc-400 mt-1 font-medium">Şampiyonlara yakışır bir antrenman. 🔥</p>
+                        </div>
                       </motion.div>
                     ) : (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-xs font-medium text-center">
@@ -150,6 +171,7 @@ export default function Muscle() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+
                 </div>
               </div>
             </div>
