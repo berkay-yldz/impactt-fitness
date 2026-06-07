@@ -63,8 +63,10 @@ export default function Auth() {
           <div className="bg-impact-surface p-8 rounded-2xl border border-zinc-800/50 shadow-2xl backdrop-blur-sm w-full">
             <Tabs defaultValue="login" className="flex flex-col w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8 bg-impact-dark p-1 rounded-lg border border-zinc-800/50">
-                <TabsTrigger value="login" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all">Giriş Yap</TabsTrigger>
-                <TabsTrigger value="register" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all">Kayıt Ol</TabsTrigger>
+                {/* 4. GÜN: Klavye erişilebilirliği için focus-visible:ring-2 eklendi */}
+                <TabsTrigger value="login" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary focus-visible:ring-offset-2 focus-visible:ring-offset-impact-dark rounded-md">Giriş Yap</TabsTrigger>
+                {/* 4. GÜN: Klavye erişilebilirliği için focus-visible:ring-2 eklendi */}
+                <TabsTrigger value="register" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary focus-visible:ring-offset-2 focus-visible:ring-offset-impact-dark rounded-md">Kayıt Ol</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="w-full focus-visible:outline-none">
@@ -77,7 +79,8 @@ export default function Auth() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
                     <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary focus-visible:border-impact-primary transition-all" required />
                   </div>
-                  <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]" disabled={isLoading}>
+                  {/* 4. GÜN: Klavye erişilebilirliği için focus-visible:ring-2 eklendi */}
+                  <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-impact-surface focus-visible:ring-impact-primary" disabled={isLoading}>
                     {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
                   </Button>
                 </form>
@@ -97,7 +100,8 @@ export default function Auth() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
                     <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary focus-visible:border-impact-primary transition-all" required />
                   </div>
-                  <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]" disabled={isLoading}>
+                  {/* 4. GÜN: Klavye erişilebilirliği için focus-visible:ring-2 eklendi */}
+                  <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-impact-surface focus-visible:ring-impact-primary" disabled={isLoading}>
                     {isLoading ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
                   </Button>
                 </form>
@@ -111,6 +115,7 @@ export default function Auth() {
       <div className="hidden lg:flex w-1/2 bg-zinc-950 relative overflow-hidden items-center justify-center border-l border-zinc-900">
         <div className="absolute w-[500px] h-[500px] bg-impact-primary/10 rounded-full blur-[120px]" />
         
+        {/* 4. GÜN: `alt` etiketi halihazırda erişilebilirliğe uygun. */}
         <motion.img 
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }} 

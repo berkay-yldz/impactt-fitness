@@ -8,7 +8,7 @@ import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import confetti from "canvas-confetti"; 
-import Lottie from "lottie-react"; // EKLENDİ: Lottie kütüphanesi
+import Lottie from "lottie-react"; 
 
 const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } } };
@@ -16,7 +16,7 @@ const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, 
 export default function Muscle() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [trophyAnimation, setTrophyAnimation] = useState(null); // EKLENDİ: Kupa animasyonu state'i
+  const [trophyAnimation, setTrophyAnimation] = useState(null); 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -30,7 +30,6 @@ export default function Muscle() {
   const [isAllCompleted, setIsAllCompleted] = useState(false);
   const [activeMuscleGroup, setActiveMuscleGroup] = useState("");
 
-  // EKLENDİ: public klasöründeki JSON dosyasını çekme işlemi
   useEffect(() => {
     fetch("/lottie/trophy.json")
       .then((res) => res.json())
@@ -38,7 +37,6 @@ export default function Muscle() {
       .catch((err) => console.error("Kupa animasyonu yüklenemedi:", err));
   }, []);
 
-  // 🚀 UX DOKUNUŞU: İlerleme Yüzdesi Hesaplama
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
   const progressPercentage = (completedCount / exercises.length) * 100;
 
@@ -81,14 +79,14 @@ export default function Muscle() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
+        {/* STANDARTLAŞTIRILMIŞ MAIN ETİKETİ EKLENDİ */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-20">
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-impact-surface p-5 sm:p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <div className="flex-1 w-full">
                 <h1 className="text-xl sm:text-3xl font-black tracking-tight mb-4">Günün Programı: <span className="text-impact-primary">Göğüs</span></h1>
                 
-                {/* 🚀 UX DOKUNUŞU: Dinamik Animasyonlu Progress Bar */}
                 <div className="w-full max-w-md pr-4">
                   <div className="flex justify-between text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
                     <span>İlerleme</span>
@@ -149,7 +147,6 @@ export default function Muscle() {
                     />
                   </div>
                   
-                  {/* GÜNCELLENDİ: Lottie Kupa Animasyonu */}
                   <AnimatePresence mode="wait">
                     {isAllCompleted ? (
                       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 p-6 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex flex-col items-center justify-center gap-4 text-center">

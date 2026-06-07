@@ -3,24 +3,23 @@ import { motion } from "framer-motion";
 import { Menu, LogOut, User as UserIcon, Flame, ShieldCheck, Lock, CalendarDays, Award } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import ChatWindow from "@/components/Chatbot/ChatWindow";
-import Testimonials from "@/components/Testimonials/Testimonials";
+// AKTİF EDİLDİ: Başarı Hikayeleri (Testimonials) bileşeni artık sayfaya dahil.
+import Testimonials from "@/components/Testimonials/Testimonials"; 
 import { useAuth } from "@/context/AuthContext";
 import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
-import Lottie from "lottie-react"; // EKLENDİ: Lottie kütüphanesi
+import Lottie from "lottie-react";
 
 export default function Discipline() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [fireAnimation, setFireAnimation] = useState(null); // EKLENDİ: Lottie verisini tutacak state
+  const [fireAnimation, setFireAnimation] = useState(null); 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // [MOCK DATA]
   const currentStreak = 12;
   const activeDays = [1, 2, 3, 5, 6, 7, 8, 10, 11, 12]; 
 
-  // [ANAYASA UYUMU] Doğru rozet isimleri
   const badges = [
     { id: "b1", title: "Momentum", desc: "3 Günlük Streak", isEarned: true, icon: Flame },
     { id: "b2", title: "Haftalık Savaşçı", desc: "7 Günlük Streak", isEarned: true, icon: ShieldCheck },
@@ -28,7 +27,6 @@ export default function Discipline() {
     { id: "b4", title: "Demir İrade", desc: "30 Günlük Streak", isEarned: false, icon: Flame },
   ];
 
-  // EKLENDİ: public klasöründeki JSON dosyasını çekme işlemi
   useEffect(() => {
     fetch("/lottie/fire.json")
       .then((res) => res.json())
@@ -47,7 +45,10 @@ export default function Discipline() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-impact-surface flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-colors duration-300">
           <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-zinc-500 hover:text-impact-primary" onClick={() => setIsSidebarOpen(true)}>
+            <button 
+              className="lg:hidden p-2 text-zinc-500 hover:text-impact-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary rounded-lg" 
+              onClick={() => setIsSidebarOpen(true)}
+            >
               <Menu className="w-6 h-6" />
             </button>
             <h2 className="text-xl font-bold hidden sm:flex items-center gap-2">
@@ -59,7 +60,10 @@ export default function Discipline() {
               <UserIcon className="w-4 h-4 text-zinc-500" />
               <span className="text-sm font-medium">{currentUser?.displayName || "Emrullah"}</span>
             </div>
-            <button onClick={handleLogout} className="p-2 text-zinc-500 hover:text-red-500 rounded-lg">
+            <button 
+              onClick={handleLogout} 
+              className="p-2 text-zinc-500 hover:text-red-500 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           </div>
@@ -70,12 +74,10 @@ export default function Discipline() {
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               
-              {/* STREAK SAYACI [ANAYASA UYUMU] */}
               <div className="bg-white dark:bg-impact-surface p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-impact-primary to-impact-secondary"></div>
                 <h3 className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Mevcut İstikrar Serisi</h3>
                 
-                {/* GÜNCELLENDİ: Lottie Animasyon Alanı */}
                 <div className="w-32 h-32 mb-2 flex items-center justify-center drop-shadow-[0_0_25px_rgba(249,115,22,0.4)]">
                   {fireAnimation ? (
                     <Lottie animationData={fireAnimation} loop={true} className="w-full h-full object-contain" />
@@ -93,7 +95,6 @@ export default function Discipline() {
                 <p className="text-sm text-zinc-500 mt-3 font-medium">Harika gidiyorsun, seriyi bozma!</p>
               </div>
 
-              {/* AKTİVİTE TAKVİMİ [ANAYASA UYUMU - "Yeşil Hücre" Fixi] */}
               <div className="lg:col-span-2 bg-white dark:bg-impact-surface p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -124,7 +125,6 @@ export default function Discipline() {
               </div>
             </div>
 
-            {/* ROZET KOLEKSİYONU [ANAYASA UYUMU] */}
             <div className="bg-white dark:bg-impact-surface p-6 sm:p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <div className="flex items-center gap-2 mb-6">
                 <Award className="w-6 h-6 text-impact-primary" />
@@ -147,7 +147,7 @@ export default function Discipline() {
               </div>
             </div>
 
-            {/* TESTIMONIALS (BAŞARI HİKAYELERİ) */}
+            {/* AKTİF EDİLDİ: Başarı Hikayeleri (Testimonials) alanı yorumdan çıkarıldı. */}
             <div className="mt-8 border-t border-zinc-200 dark:border-zinc-800 pt-8">
               <Testimonials />
             </div>

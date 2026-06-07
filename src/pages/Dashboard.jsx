@@ -82,6 +82,10 @@ export default function Dashboard() {
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10">
+            
+            {/* Hoş Geldin Mesajı - Tasarımı bozmadan en üste eklendi */} 
+            <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="text-2xl font-black text-zinc-900 dark:text-white mb-6" > Merhaba, {currentUser?.displayName || "Sporcu"}! Bugün hazır mısın? </motion.h2>
+
             <header className="mb-6 sm:mb-10">
               <motion.h2 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
                 Hoş geldin, <span className="text-impact-primary">{currentUser?.displayName || "Şampiyon"}</span>!

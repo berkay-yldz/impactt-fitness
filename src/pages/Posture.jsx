@@ -60,8 +60,9 @@ export default function Posture() {
             <button className="lg:hidden p-2 text-zinc-500 dark:text-zinc-400 hover:text-impact-primary" onClick={() => setIsSidebarOpen(true)}>
               <Menu className="w-6 h-6" />
             </button>
-            <h2 className="text-lg sm:text-xl font-bold hidden sm:block flex items-center gap-2">
-              <Activity className="w-5 h-5 text-impact-primary" /> Postür Modülü <span className="text-[10px] bg-impact-primary/20 text-impact-primary px-2 py-0.5 rounded border border-impact-primary/30 ml-2">PREMIUM</span>
+            <h2 className="text-lg sm:text-xl font-bold hidden sm:flex items-center gap-2">
+              <Activity className="w-5 h-5 text-impact-primary" /> Postür Modülü 
+              {/* PREMIUM span'ı buradan kaldırıldı */}
             </h2>
           </div>
           <div className="flex items-center gap-3">
