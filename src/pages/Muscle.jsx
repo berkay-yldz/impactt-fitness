@@ -10,9 +10,11 @@ import {
   XCircle,
   ArrowRight,
   Calendar,
+  PlayCircle,
 } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
+import ExerciseVideoModal from "@/components/ui/ExerciseVideoModal";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -48,6 +50,7 @@ const levelText = {
 
 export default function Muscle() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [demoExercise, setDemoExercise] = useState(null);
   const [trophyAnimation, setTrophyAnimation] = useState(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -325,6 +328,16 @@ export default function Muscle() {
 
                         <div className="flex gap-2 sm:gap-4 items-center font-black text-sm sm:text-base">
                           <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDemoExercise(ex);
+                            }}
+                            className="p-1.5 sm:p-2 text-zinc-400 hover:text-impact-primary hover:bg-impact-primary/10 rounded-lg transition-colors"
+                            title="Hareket demosunu izle"
+                          >
+                            <PlayCircle className="w-5 h-5" />
+                          </button>
+                          <button
                             onClick={(e) => handleFailTest(ex.id, e)}
                             className="p-1.5 sm:p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Zorlandım (Adaptif Düşürme Testi)"
@@ -429,6 +442,11 @@ export default function Muscle() {
           </div>
         </main>
       </div>
+      <ExerciseVideoModal
+        isOpen={!!demoExercise}
+        onClose={() => setDemoExercise(null)}
+        exercise={demoExercise}
+      />
     </div>
   );
 }
