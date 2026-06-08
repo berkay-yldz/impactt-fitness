@@ -1,71 +1,76 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// 🚨 BUG ÇÖZÜLDÜ: Bot ikonu import edildi
-import { Send, X, Sparkles, Bot } from "lucide-react"; 
+import { Send, X, MessageSquare, Loader2, Bot } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+// Not: Emrullah'ın yazdığı RAG API'sine istek atacak fonksiyonunu buraya import edebilirsin
+// import { sendChatMessage } from "@/services/apiService"; 
+
+/**
+ * IMPACT AI - Karakter Duygu Analiz Motoru
+ * Yapay zekanın cümlesindeki kelimeleri okuyarak doğru animasyonu tetikler.
+ */
+const getCoachAsset = (text) => {
+  if (!text) return "/assets/coach-idle.webp";
+  
+  const lowerText = text.toLowerCase();
+  
+  // Büyük başarı ve kutlama kelimeleri
+  if (lowerText.includes("tebrik") || lowerText.includes("şampiyon") || lowerText.includes("harika") || lowerText.includes("mükemmel") || lowerText.includes("bitti")) {
+    return "/assets/coach-celebrate.gif";
+  } 
+  // Onaylama ve pozitif geri bildirim kelimeleri
+  else if (lowerText.includes("iyi") || lowerText.includes("tamam") || lowerText.includes("doğru") || lowerText.includes("güzel") || lowerText.includes("aynen")) {
+    return "/assets/coach-thumbsup.webp";
+  }
+  
+  // Standart bekleme/konuşma hali
+  return "/assets/coach-idle.webp";
+};
 
 export default function ChatWindow({ isOpen, onClose }) {
-  const [messages, setMessages] = useState([
-    { role: "system", content: "Merhaba! Ben Impact AI Koçun. Antrenman ve beslenme hedeflerine ulaşman için buradayım. Sana nasıl yardımcı olabilirim?" }
-  ]);
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
   const { currentUser } = useAuth();
+  const [messages, setMessages] = useState([
+    { role: "ai", content: `Selam ${currentUser?.displayName?.split(' ')[0] || 'Şampiyon'}! Bugün nasıl bir antrenman planlıyoruz?` }
+  ]);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  // Otomatik aşağı kaydırma mekanizması
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Yeni mesaj geldiğinde otomatik en alta kaydır
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim() || isLoading) return;
 
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
-    setInput("");
-
-    if (!currentUser?.uid) {
-      setMessages(prev => [...prev, { role: "system", content: "Önce giriş yapman gerekiyor. AI Koç sadece oturum açmış kullanıcılara cevap verir." }]);
-      return;
-    }
-
-    setIsTyping(true);
+    const userMsg = { role: "user", content: inputText };
+    setMessages((prev) => [...prev, userMsg]);
+    setInputText("");
+    setIsLoading(true);
 
     try {
-      const response = await fetch("/api/chat-rag", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          uid: currentUser.uid,
-          message: userMessage
-        })
-      });
+      // 🚨 BURASI EMRULLAH'IN VERCEL RAG API'SİNE GİDECEK YERDİR
+      // Örnek: const response = await sendChatMessage(currentUser.uid, inputText);
+      
+      // Şimdilik test için sahte (mock) bir gecikme ve cevap ekliyoruz:
+      setTimeout(() => {
+        let mockResponse = "Bunu anladım. Antrenmanına odaklanmaya devam et!";
+        if (userMsg.content.toLowerCase().includes("bitti") || userMsg.content.toLowerCase().includes("yaptım")) {
+          mockResponse = "Harika iş çıkardın şampiyon! Tebrikler, bugünün hedefini ezdin geçtin.";
+        } else if (userMsg.content.toLowerCase().includes("nasılsın")) {
+          mockResponse = "Gayet iyi! Demirleri kaldırmak için sabırsızlanıyorum.";
+        }
 
-      const data = await response.json();
+        setMessages((prev) => [...prev, { role: "ai", content: mockResponse }]);
+        setIsLoading(false);
+      }, 1000);
 
-      if (!response.ok) {
-        const errMsg = data?.error
-          ? `Hata: ${data.error}`
-          : `Sunucu ${response.status} kodu döndü.`;
-        setMessages(prev => [...prev, { role: "system", content: errMsg }]);
-        return;
-      }
-
-      if (!data.reply) {
-        setMessages(prev => [...prev, { role: "system", content: "AI boş cevap döndürdü, tekrar dener misin?" }]);
-        return;
-      }
-
-      setMessages(prev => [...prev, { role: "system", content: data.reply }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: "system", content: "Bağlantı sorunu — npm run dev'i restart et veya internet bağlantını kontrol et." }]);
-    } finally {
-      setIsTyping(false);
+      console.error("Chatbot API Hatası:", error);
+      setMessages((prev) => [...prev, { role: "ai", content: "Şu an sunucuya bağlanamıyorum, daha sonra tekrar dene." }]);
+      setIsLoading(false);
     }
   };
 
@@ -73,69 +78,83 @@ export default function ChatWindow({ isOpen, onClose }) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.95 }}
-          className="fixed bottom-20 right-4 sm:right-8 w-[90vw] sm:w-[400px] h-[500px] bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden transition-colors duration-300"
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="fixed bottom-20 right-4 sm:right-8 w-[90vw] sm:w-[400px] h-[500px] max-h-[80vh] bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-50"
         >
-          {/* Header */}
-          <div className="bg-impact-primary p-4 flex items-center justify-between text-white">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              <span className="font-bold tracking-tight">Impact AI Koç</span>
+          {/* Üst Bar */}
+          <div className="h-16 bg-impact-primary flex items-center justify-between px-4 sm:px-6 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center p-1 overflow-hidden">
+                <img src="/assets/coach-idle.webp" alt="Coach AI" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <h3 className="font-black text-black">IMPACT AI</h3>
+                <p className="text-[10px] text-black/70 font-bold uppercase tracking-wider">Dijital Antrenör</p>
+              </div>
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+            <button onClick={onClose} className="p-2 text-black/70 hover:text-black transition-colors rounded-full hover:bg-white/20">
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Mesaj Listesi */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-zinc-50 dark:bg-zinc-900/50">
-            {messages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-impact-primary text-white rounded-tr-sm"
-                    : "bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-tl-sm shadow-sm"
-                }`}>
+          {/* Mesajlaşma Alanı */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar bg-zinc-50 dark:bg-zinc-900/50">
+            {messages.map((msg, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {msg.role === "ai" && (
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 border-2 border-impact-primary bg-zinc-100 dark:bg-impact-dark flex items-center justify-center relative">
+                    {/* DİNAMİK KARAKTER RENDERİ */}
+                    <img src={getCoachAsset(msg.content)} alt="AI Coach" className="w-full h-full object-cover scale-110" />
+                  </div>
+                )}
+                
+                <div className={`max-w-[75%] p-3 sm:p-4 rounded-2xl text-sm ${msg.role === "user" ? "bg-zinc-900 dark:bg-white text-white dark:text-black rounded-tr-sm" : "bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-sm shadow-sm"}`}>
                   {msg.content}
                 </div>
-              </div>
+              </motion.div>
             ))}
             
-            {/* AI Yazıyor Göstergesi */}
-            {isTyping && (
-              <div className="flex justify-start items-center gap-2 text-zinc-400 dark:text-zinc-500">
-                <Bot size={16} className="text-impact-primary animate-pulse" />
-                <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-4 rounded-2xl rounded-tl-sm flex gap-1.5 shadow-sm">
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full" />
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 border-2 border-impact-primary bg-zinc-100 dark:bg-impact-dark flex items-center justify-center">
+                    <img src="/assets/coach-idle.webp" alt="AI Coach Loading" className="w-full h-full object-cover scale-110 opacity-50" />
+                  </div>
+                <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 text-impact-primary animate-spin" />
+                  <span className="text-xs font-medium text-zinc-500">Antrenör yazıyor...</span>
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Alanı */}
-          <div className="p-4 bg-white dark:bg-impact-surface border-t border-zinc-200 dark:border-zinc-800">
-            <div className="flex items-center gap-2 relative">
+          {/* Girdi Alanı */}
+          <div className="p-4 bg-white dark:bg-impact-surface border-t border-zinc-200 dark:border-zinc-800 shrink-0">
+            <form onSubmit={handleSendMessage} className="flex gap-2 relative">
               <input
                 type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Yapay zeka koçuna sor..."
-                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full px-5 py-3 text-sm focus:outline-none focus:border-impact-primary text-zinc-800 dark:text-zinc-200 transition-colors"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Yapay zekaya danış..."
+                disabled={isLoading}
+                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border border-transparent focus:border-impact-primary/50 text-sm rounded-xl px-4 py-3 outline-none text-zinc-900 dark:text-white transition-all disabled:opacity-50"
               />
               <button
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                className="absolute right-2 p-2 bg-impact-primary text-white rounded-full hover:bg-impact-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                type="submit"
+                disabled={isLoading || !inputText.trim()}
+                className="bg-impact-primary text-black p-3 rounded-xl hover:bg-impact-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </button>
-            </div>
+            </form>
           </div>
         </motion.div>
       )}

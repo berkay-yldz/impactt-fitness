@@ -97,8 +97,20 @@ export const startCamera = (videoElement, poseInstance) => {
   const Camera = window.Camera;
   if (!videoElement || !Camera || !poseInstance) return null;
 
+  // 🚨 PERFORMANS FRENİ (THROTTLE): 30 FPS Kilidi
+  let lastFrameTime = 0;
+  const TARGET_FPS = 30;
+  const FRAME_MIN_TIME = 1000 / TARGET_FPS; // Her kare arası minimum ~33.3 milisaniye
+
   camera = new Camera(videoElement, {
-    onFrame: async () => { await poseInstance.send({ image: videoElement }); },
+    onFrame: async () => {
+      const now = performance.now();
+      // Eğer bir önceki kareden bu yana 33.3ms geçmediyse, bu kareyi atla (İşlemciyi yorma!)
+      if (now - lastFrameTime >= FRAME_MIN_TIME) {
+        lastFrameTime = now;
+        await poseInstance.send({ image: videoElement });
+      }
+    },
     width: 640, height: 480
   });
 
