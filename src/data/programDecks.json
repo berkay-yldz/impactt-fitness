@@ -10,7 +10,8 @@
             "reps": 12,
             "restSeconds": 60,
             "targetMuscle": "Bacak",
-            "videoRef": "vid-goblet-squat"
+            "videoRef": "vid-goblet-squat",
+            "youtubeId": "nfX7IFK9UNI"
         },
         {
             "id": "beg-w1-d1-e2",
@@ -22,7 +23,8 @@
             "reps": 10,
             "restSeconds": 60,
             "targetMuscle": "Göğüs",
-            "videoRef": "vid-incline-pushups"
+            "videoRef": "vid-incline-pushups",
+            "youtubeId": "WDIpL0pjun0"
         },
         {
             "id": "beg-w1-d1-e3",
@@ -46,7 +48,8 @@
             "reps": 30,
             "restSeconds": 60,
             "targetMuscle": "Core",
-            "videoRef": "vid-plank"
+            "videoRef": "vid-plank",
+            "youtubeId": "A2b2EmIg0dA"
         },
         {
             "id": "beg-w1-d2-e1",
@@ -58,7 +61,8 @@
             "reps": 15,
             "restSeconds": 45,
             "targetMuscle": "Kalça",
-            "videoRef": "vid-glute-bridge"
+            "videoRef": "vid-glute-bridge",
+            "youtubeId": "wPM8icPu6H8"
         },
         {
             "id": "beg-w1-d2-e2",
@@ -70,7 +74,8 @@
             "reps": 12,
             "restSeconds": 60,
             "targetMuscle": "Bacak",
-            "videoRef": "vid-bw-lunges"
+            "videoRef": "vid-bw-lunges",
+            "youtubeId": "WzONHuAe6BY"
         },
         {
             "id": "beg-w1-d2-e3",
@@ -82,7 +87,8 @@
             "reps": 10,
             "restSeconds": 45,
             "targetMuscle": "Core/Sırt",
-            "videoRef": "vid-bird-dog"
+            "videoRef": "vid-bird-dog",
+            "youtubeId": "ZdAHe9_HeEw"
         },
         {
             "id": "beg-w1-d2-e4",
@@ -142,7 +148,8 @@
             "reps": 12,
             "restSeconds": 60,
             "targetMuscle": "Core",
-            "videoRef": "vid-dead-bug"
+            "videoRef": "vid-dead-bug",
+            "youtubeId": "bxn9FBrt4-A"
         },
         {
             "id": "beg-w1-d4-e1",
@@ -384,7 +391,8 @@
             "reps": 15,
             "restSeconds": 60,
             "targetMuscle": "Sırt/Core",
-            "videoRef": "vid-superman"
+            "videoRef": "vid-superman",
+            "youtubeId": "ATly_pW0i6g"
         },
         {
             "id": "int-w1-d4-e1",
@@ -727,52 +735,468 @@
     ],
     "posture": {
         "beginner": [
-            { "id": "pos-beg-w1-d1-e1", "week": 1, "day": 1, "level": "beginner", "name": "Plank", "sets": 3, "reps": 30, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-plank" },
-            { "id": "pos-beg-w1-d1-e2", "week": 1, "day": 1, "level": "beginner", "name": "Glute Bridge", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Kalça", "videoRef": "vid-glute-bridge" },
-            { "id": "pos-beg-w1-d1-e3", "week": 1, "day": 1, "level": "beginner", "name": "Bird Dog", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Bel Stabilizasyon", "videoRef": "vid-bird-dog" },
-            { "id": "pos-beg-w1-d1-e4", "week": 1, "day": 1, "level": "beginner", "name": "Chin Tucks", "sets": 3, "reps": 12, "restSeconds": 30, "targetMuscle": "Boyun", "videoRef": "vid-chin-tucks" },
-
-            { "id": "pos-beg-w1-d2-e1", "week": 1, "day": 2, "level": "beginner", "name": "Cat-Cow", "sets": 3, "reps": 10, "restSeconds": 30, "targetMuscle": "Omurga Mobilite", "videoRef": "vid-cat-cow" },
-            { "id": "pos-beg-w1-d2-e2", "week": 1, "day": 2, "level": "beginner", "name": "Wall Angels", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Omuz", "videoRef": "vid-wall-angels" },
-            { "id": "pos-beg-w1-d2-e3", "week": 1, "day": 2, "level": "beginner", "name": "Dead Bug", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-dead-bug" },
-            { "id": "pos-beg-w1-d2-e4", "week": 1, "day": 2, "level": "beginner", "name": "Glute Bridge Hold", "sets": 3, "reps": 20, "restSeconds": 45, "targetMuscle": "Kalça", "videoRef": "vid-glute-bridge-hold" },
-
-            { "id": "pos-beg-w1-d3-e1", "week": 1, "day": 3, "level": "beginner", "name": "Plank", "sets": 3, "reps": 35, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-plank" },
-            { "id": "pos-beg-w1-d3-e2", "week": 1, "day": 3, "level": "beginner", "name": "Bird Dog", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Bel Stabilizasyon", "videoRef": "vid-bird-dog" },
-            { "id": "pos-beg-w1-d3-e3", "week": 1, "day": 3, "level": "beginner", "name": "Superman", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Sırt", "videoRef": "vid-superman" },
-            { "id": "pos-beg-w1-d3-e4", "week": 1, "day": 3, "level": "beginner", "name": "Chin Tucks", "sets": 3, "reps": 15, "restSeconds": 30, "targetMuscle": "Boyun", "videoRef": "vid-chin-tucks" }
+            {
+                "id": "pos-beg-w1-d1-e1",
+                "week": 1,
+                "day": 1,
+                "level": "beginner",
+                "name": "Plank",
+                "sets": 3,
+                "reps": 30,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-plank",
+                "youtubeId": "A2b2EmIg0dA"
+            },
+            {
+                "id": "pos-beg-w1-d1-e2",
+                "week": 1,
+                "day": 1,
+                "level": "beginner",
+                "name": "Glute Bridge",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Kalça",
+                "videoRef": "vid-glute-bridge",
+                "youtubeId": "wPM8icPu6H8"
+            },
+            {
+                "id": "pos-beg-w1-d1-e3",
+                "week": 1,
+                "day": 1,
+                "level": "beginner",
+                "name": "Bird Dog",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Bel Stabilizasyon",
+                "videoRef": "vid-bird-dog",
+                "youtubeId": "ZdAHe9_HeEw"
+            },
+            {
+                "id": "pos-beg-w1-d1-e4",
+                "week": 1,
+                "day": 1,
+                "level": "beginner",
+                "name": "Chin Tucks",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 30,
+                "targetMuscle": "Boyun",
+                "videoRef": "vid-chin-tucks"
+            },
+            {
+                "id": "pos-beg-w1-d2-e1",
+                "week": 1,
+                "day": 2,
+                "level": "beginner",
+                "name": "Cat-Cow",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 30,
+                "targetMuscle": "Omurga Mobilite",
+                "videoRef": "vid-cat-cow"
+            },
+            {
+                "id": "pos-beg-w1-d2-e2",
+                "week": 1,
+                "day": 2,
+                "level": "beginner",
+                "name": "Wall Angels",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Omuz",
+                "videoRef": "vid-wall-angels"
+            },
+            {
+                "id": "pos-beg-w1-d2-e3",
+                "week": 1,
+                "day": 2,
+                "level": "beginner",
+                "name": "Dead Bug",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-dead-bug",
+                "youtubeId": "bxn9FBrt4-A"
+            },
+            {
+                "id": "pos-beg-w1-d2-e4",
+                "week": 1,
+                "day": 2,
+                "level": "beginner",
+                "name": "Glute Bridge Hold",
+                "sets": 3,
+                "reps": 20,
+                "restSeconds": 45,
+                "targetMuscle": "Kalça",
+                "videoRef": "vid-glute-bridge-hold",
+                "youtubeId": "wPM8icPu6H8"
+            },
+            {
+                "id": "pos-beg-w1-d3-e1",
+                "week": 1,
+                "day": 3,
+                "level": "beginner",
+                "name": "Plank",
+                "sets": 3,
+                "reps": 35,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-plank",
+                "youtubeId": "A2b2EmIg0dA"
+            },
+            {
+                "id": "pos-beg-w1-d3-e2",
+                "week": 1,
+                "day": 3,
+                "level": "beginner",
+                "name": "Bird Dog",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Bel Stabilizasyon",
+                "videoRef": "vid-bird-dog",
+                "youtubeId": "ZdAHe9_HeEw"
+            },
+            {
+                "id": "pos-beg-w1-d3-e3",
+                "week": 1,
+                "day": 3,
+                "level": "beginner",
+                "name": "Superman",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Sırt",
+                "videoRef": "vid-superman",
+                "youtubeId": "ATly_pW0i6g"
+            },
+            {
+                "id": "pos-beg-w1-d3-e4",
+                "week": 1,
+                "day": 3,
+                "level": "beginner",
+                "name": "Chin Tucks",
+                "sets": 3,
+                "reps": 15,
+                "restSeconds": 30,
+                "targetMuscle": "Boyun",
+                "videoRef": "vid-chin-tucks"
+            }
         ],
         "intermediate": [
-            { "id": "pos-int-w1-d1-e1", "week": 1, "day": 1, "level": "intermediate", "name": "Plank", "sets": 3, "reps": 45, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-plank" },
-            { "id": "pos-int-w1-d1-e2", "week": 1, "day": 1, "level": "intermediate", "name": "Side Plank", "sets": 3, "reps": 25, "restSeconds": 45, "targetMuscle": "Yan Core", "videoRef": "vid-side-plank" },
-            { "id": "pos-int-w1-d1-e3", "week": 1, "day": 1, "level": "intermediate", "name": "Bird Dog", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Bel Stabilizasyon", "videoRef": "vid-bird-dog" },
-            { "id": "pos-int-w1-d1-e4", "week": 1, "day": 1, "level": "intermediate", "name": "Dead Bug", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-dead-bug" },
-
-            { "id": "pos-int-w1-d2-e1", "week": 1, "day": 2, "level": "intermediate", "name": "Wall Sit", "sets": 3, "reps": 40, "restSeconds": 60, "targetMuscle": "Quad/Postür", "videoRef": "vid-wall-sit" },
-            { "id": "pos-int-w1-d2-e2", "week": 1, "day": 2, "level": "intermediate", "name": "Glute Bridge", "sets": 3, "reps": 15, "restSeconds": 45, "targetMuscle": "Kalça", "videoRef": "vid-glute-bridge" },
-            { "id": "pos-int-w1-d2-e3", "week": 1, "day": 2, "level": "intermediate", "name": "Superman", "sets": 3, "reps": 15, "restSeconds": 45, "targetMuscle": "Sırt", "videoRef": "vid-superman" },
-            { "id": "pos-int-w1-d2-e4", "week": 1, "day": 2, "level": "intermediate", "name": "Cat-Cow", "sets": 3, "reps": 12, "restSeconds": 30, "targetMuscle": "Omurga Mobilite", "videoRef": "vid-cat-cow" },
-
-            { "id": "pos-int-w1-d3-e1", "week": 1, "day": 3, "level": "intermediate", "name": "Side Plank", "sets": 3, "reps": 30, "restSeconds": 45, "targetMuscle": "Yan Core", "videoRef": "vid-side-plank" },
-            { "id": "pos-int-w1-d3-e2", "week": 1, "day": 3, "level": "intermediate", "name": "Bird Dog", "sets": 3, "reps": 14, "restSeconds": 45, "targetMuscle": "Bel Stabilizasyon", "videoRef": "vid-bird-dog" },
-            { "id": "pos-int-w1-d3-e3", "week": 1, "day": 3, "level": "intermediate", "name": "Wall Angels", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Omuz", "videoRef": "vid-wall-angels" },
-            { "id": "pos-int-w1-d3-e4", "week": 1, "day": 3, "level": "intermediate", "name": "Dead Bug", "sets": 3, "reps": 14, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-dead-bug" }
+            {
+                "id": "pos-int-w1-d1-e1",
+                "week": 1,
+                "day": 1,
+                "level": "intermediate",
+                "name": "Plank",
+                "sets": 3,
+                "reps": 45,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-plank",
+                "youtubeId": "A2b2EmIg0dA"
+            },
+            {
+                "id": "pos-int-w1-d1-e2",
+                "week": 1,
+                "day": 1,
+                "level": "intermediate",
+                "name": "Side Plank",
+                "sets": 3,
+                "reps": 25,
+                "restSeconds": 45,
+                "targetMuscle": "Yan Core",
+                "videoRef": "vid-side-plank",
+                "youtubeId": "44ND4bOB-T0"
+            },
+            {
+                "id": "pos-int-w1-d1-e3",
+                "week": 1,
+                "day": 1,
+                "level": "intermediate",
+                "name": "Bird Dog",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Bel Stabilizasyon",
+                "videoRef": "vid-bird-dog",
+                "youtubeId": "ZdAHe9_HeEw"
+            },
+            {
+                "id": "pos-int-w1-d1-e4",
+                "week": 1,
+                "day": 1,
+                "level": "intermediate",
+                "name": "Dead Bug",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-dead-bug",
+                "youtubeId": "bxn9FBrt4-A"
+            },
+            {
+                "id": "pos-int-w1-d2-e1",
+                "week": 1,
+                "day": 2,
+                "level": "intermediate",
+                "name": "Wall Sit",
+                "sets": 3,
+                "reps": 40,
+                "restSeconds": 60,
+                "targetMuscle": "Quad/Postür",
+                "videoRef": "vid-wall-sit",
+                "youtubeId": "JaZNYM3zAP0"
+            },
+            {
+                "id": "pos-int-w1-d2-e2",
+                "week": 1,
+                "day": 2,
+                "level": "intermediate",
+                "name": "Glute Bridge",
+                "sets": 3,
+                "reps": 15,
+                "restSeconds": 45,
+                "targetMuscle": "Kalça",
+                "videoRef": "vid-glute-bridge",
+                "youtubeId": "wPM8icPu6H8"
+            },
+            {
+                "id": "pos-int-w1-d2-e3",
+                "week": 1,
+                "day": 2,
+                "level": "intermediate",
+                "name": "Superman",
+                "sets": 3,
+                "reps": 15,
+                "restSeconds": 45,
+                "targetMuscle": "Sırt",
+                "videoRef": "vid-superman",
+                "youtubeId": "ATly_pW0i6g"
+            },
+            {
+                "id": "pos-int-w1-d2-e4",
+                "week": 1,
+                "day": 2,
+                "level": "intermediate",
+                "name": "Cat-Cow",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 30,
+                "targetMuscle": "Omurga Mobilite",
+                "videoRef": "vid-cat-cow"
+            },
+            {
+                "id": "pos-int-w1-d3-e1",
+                "week": 1,
+                "day": 3,
+                "level": "intermediate",
+                "name": "Side Plank",
+                "sets": 3,
+                "reps": 30,
+                "restSeconds": 45,
+                "targetMuscle": "Yan Core",
+                "videoRef": "vid-side-plank",
+                "youtubeId": "44ND4bOB-T0"
+            },
+            {
+                "id": "pos-int-w1-d3-e2",
+                "week": 1,
+                "day": 3,
+                "level": "intermediate",
+                "name": "Bird Dog",
+                "sets": 3,
+                "reps": 14,
+                "restSeconds": 45,
+                "targetMuscle": "Bel Stabilizasyon",
+                "videoRef": "vid-bird-dog",
+                "youtubeId": "ZdAHe9_HeEw"
+            },
+            {
+                "id": "pos-int-w1-d3-e3",
+                "week": 1,
+                "day": 3,
+                "level": "intermediate",
+                "name": "Wall Angels",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Omuz",
+                "videoRef": "vid-wall-angels"
+            },
+            {
+                "id": "pos-int-w1-d3-e4",
+                "week": 1,
+                "day": 3,
+                "level": "intermediate",
+                "name": "Dead Bug",
+                "sets": 3,
+                "reps": 14,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-dead-bug",
+                "youtubeId": "bxn9FBrt4-A"
+            }
         ],
         "advanced": [
-            { "id": "pos-adv-w1-d1-e1", "week": 1, "day": 1, "level": "advanced", "name": "RKC Plank", "sets": 3, "reps": 60, "restSeconds": 60, "targetMuscle": "Core", "videoRef": "vid-rkc-plank" },
-            { "id": "pos-adv-w1-d1-e2", "week": 1, "day": 1, "level": "advanced", "name": "Side Plank with Hip Drop", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Yan Core", "videoRef": "vid-side-plank-hipdrop" },
-            { "id": "pos-adv-w1-d1-e3", "week": 1, "day": 1, "level": "advanced", "name": "Single-Leg Glute Bridge", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Kalça", "videoRef": "vid-sl-glute-bridge" },
-            { "id": "pos-adv-w1-d1-e4", "week": 1, "day": 1, "level": "advanced", "name": "Hollow Body Hold", "sets": 3, "reps": 30, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-hollow-hold" },
-
-            { "id": "pos-adv-w1-d2-e1", "week": 1, "day": 2, "level": "advanced", "name": "Wall Sit", "sets": 3, "reps": 60, "restSeconds": 60, "targetMuscle": "Quad/Postür", "videoRef": "vid-wall-sit" },
-            { "id": "pos-adv-w1-d2-e2", "week": 1, "day": 2, "level": "advanced", "name": "Superman + Y-T-W", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Sırt", "videoRef": "vid-superman-ytw" },
-            { "id": "pos-adv-w1-d2-e3", "week": 1, "day": 2, "level": "advanced", "name": "Dead Bug Slow", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-dead-bug-slow" },
-            { "id": "pos-adv-w1-d2-e4", "week": 1, "day": 2, "level": "advanced", "name": "Reverse Plank", "sets": 3, "reps": 30, "restSeconds": 45, "targetMuscle": "Posterior Zincir", "videoRef": "vid-reverse-plank" },
-
-            { "id": "pos-adv-w1-d3-e1", "week": 1, "day": 3, "level": "advanced", "name": "Side Plank with Reach", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Yan Core", "videoRef": "vid-side-plank-reach" },
-            { "id": "pos-adv-w1-d3-e2", "week": 1, "day": 3, "level": "advanced", "name": "Single-Leg Bird Dog", "sets": 3, "reps": 10, "restSeconds": 45, "targetMuscle": "Bel Stabilizasyon", "videoRef": "vid-sl-bird-dog" },
-            { "id": "pos-adv-w1-d3-e3", "week": 1, "day": 3, "level": "advanced", "name": "Hollow Body Hold", "sets": 3, "reps": 40, "restSeconds": 45, "targetMuscle": "Core", "videoRef": "vid-hollow-hold" },
-            { "id": "pos-adv-w1-d3-e4", "week": 1, "day": 3, "level": "advanced", "name": "Wall Angels Slow", "sets": 3, "reps": 12, "restSeconds": 45, "targetMuscle": "Omuz", "videoRef": "vid-wall-angels-slow" }
+            {
+                "id": "pos-adv-w1-d1-e1",
+                "week": 1,
+                "day": 1,
+                "level": "advanced",
+                "name": "RKC Plank",
+                "sets": 3,
+                "reps": 60,
+                "restSeconds": 60,
+                "targetMuscle": "Core",
+                "videoRef": "vid-rkc-plank",
+                "youtubeId": "A2b2EmIg0dA"
+            },
+            {
+                "id": "pos-adv-w1-d1-e2",
+                "week": 1,
+                "day": 1,
+                "level": "advanced",
+                "name": "Side Plank with Hip Drop",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Yan Core",
+                "videoRef": "vid-side-plank-hipdrop",
+                "youtubeId": "44ND4bOB-T0"
+            },
+            {
+                "id": "pos-adv-w1-d1-e3",
+                "week": 1,
+                "day": 1,
+                "level": "advanced",
+                "name": "Single-Leg Glute Bridge",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Kalça",
+                "videoRef": "vid-sl-glute-bridge",
+                "youtubeId": "wPM8icPu6H8"
+            },
+            {
+                "id": "pos-adv-w1-d1-e4",
+                "week": 1,
+                "day": 1,
+                "level": "advanced",
+                "name": "Hollow Body Hold",
+                "sets": 3,
+                "reps": 30,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-hollow-hold"
+            },
+            {
+                "id": "pos-adv-w1-d2-e1",
+                "week": 1,
+                "day": 2,
+                "level": "advanced",
+                "name": "Wall Sit",
+                "sets": 3,
+                "reps": 60,
+                "restSeconds": 60,
+                "targetMuscle": "Quad/Postür",
+                "videoRef": "vid-wall-sit",
+                "youtubeId": "JaZNYM3zAP0"
+            },
+            {
+                "id": "pos-adv-w1-d2-e2",
+                "week": 1,
+                "day": 2,
+                "level": "advanced",
+                "name": "Superman + Y-T-W",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Sırt",
+                "videoRef": "vid-superman-ytw",
+                "youtubeId": "ATly_pW0i6g"
+            },
+            {
+                "id": "pos-adv-w1-d2-e3",
+                "week": 1,
+                "day": 2,
+                "level": "advanced",
+                "name": "Dead Bug Slow",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-dead-bug-slow",
+                "youtubeId": "bxn9FBrt4-A"
+            },
+            {
+                "id": "pos-adv-w1-d2-e4",
+                "week": 1,
+                "day": 2,
+                "level": "advanced",
+                "name": "Reverse Plank",
+                "sets": 3,
+                "reps": 30,
+                "restSeconds": 45,
+                "targetMuscle": "Posterior Zincir",
+                "videoRef": "vid-reverse-plank"
+            },
+            {
+                "id": "pos-adv-w1-d3-e1",
+                "week": 1,
+                "day": 3,
+                "level": "advanced",
+                "name": "Side Plank with Reach",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Yan Core",
+                "videoRef": "vid-side-plank-reach",
+                "youtubeId": "44ND4bOB-T0"
+            },
+            {
+                "id": "pos-adv-w1-d3-e2",
+                "week": 1,
+                "day": 3,
+                "level": "advanced",
+                "name": "Single-Leg Bird Dog",
+                "sets": 3,
+                "reps": 10,
+                "restSeconds": 45,
+                "targetMuscle": "Bel Stabilizasyon",
+                "videoRef": "vid-sl-bird-dog",
+                "youtubeId": "ZdAHe9_HeEw"
+            },
+            {
+                "id": "pos-adv-w1-d3-e3",
+                "week": 1,
+                "day": 3,
+                "level": "advanced",
+                "name": "Hollow Body Hold",
+                "sets": 3,
+                "reps": 40,
+                "restSeconds": 45,
+                "targetMuscle": "Core",
+                "videoRef": "vid-hollow-hold"
+            },
+            {
+                "id": "pos-adv-w1-d3-e4",
+                "week": 1,
+                "day": 3,
+                "level": "advanced",
+                "name": "Wall Angels Slow",
+                "sets": 3,
+                "reps": 12,
+                "restSeconds": 45,
+                "targetMuscle": "Omuz",
+                "videoRef": "vid-wall-angels-slow"
+            }
         ]
     }
 }
