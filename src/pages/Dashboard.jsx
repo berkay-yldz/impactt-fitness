@@ -1,3 +1,4 @@
+import ProfileModal from "@/components/ui/ProfileModal";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, LogOut, User as UserIcon, Sparkles, Flame, Dumbbell, Utensils, ChevronRight } from "lucide-react";
@@ -15,6 +16,7 @@ const cardVariants = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // EKLENDİ: Profil modalı kontrol state'i
   const [profileData, setProfileData] = useState({ streak: 0, programLevel: "beginner", fitnessGoal: "muscle_gain" });
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
@@ -50,7 +52,6 @@ export default function Dashboard() {
   const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
   return (
-    /* GÜN 5 POLISH: Açık/Koyu tema duyarlılığı (dark:bg-impact-dark vs bg-zinc-50) eklendi */
     <div className="flex h-screen bg-zinc-50 dark:bg-impact-dark overflow-hidden text-zinc-900 dark:text-white transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
@@ -68,12 +69,18 @@ export default function Dashboard() {
               <Sparkles className="w-4 h-4" />
               <span className="hidden sm:inline">AI Koç</span>
             </button>
-            <div className="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 ml-2 transition-colors duration-300">
+            
+            {/* DEĞİŞTİRİLDİ: Kullanıcı ismi artık profil modalını açan bir buton */}
+            <button 
+              onClick={() => setIsProfileModalOpen(true)}
+              className="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 ml-2 transition-colors duration-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary"
+            >
               <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
                 <UserIcon className="w-4 h-4" />
               </div>
               <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{currentUser?.displayName || "Sporcu"}</span>
-            </div>
+            </button>
+
             <button onClick={handleLogout} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 rounded-lg transition-colors ml-1">
               <LogOut className="w-5 h-5" />
             </button>
@@ -83,7 +90,6 @@ export default function Dashboard() {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10">
             
-            {/* Hoş Geldin Mesajı - Tasarımı bozmadan en üste eklendi */} 
             <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="text-2xl font-black text-zinc-900 dark:text-white mb-6" > Merhaba, {currentUser?.displayName || "Sporcu"}! Bugün hazır mısın? </motion.h2>
 
             <header className="mb-6 sm:mb-10">
@@ -98,7 +104,6 @@ export default function Dashboard() {
             {!isLoading && (
               <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 
-                {/* KARTLAR: dark: ve açık tema renkleri eklendi */}
                 <motion.div variants={cardVariants} className="group relative bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-5 sm:p-6 overflow-hidden hover:border-impact-primary/50 transition-colors shadow-sm dark:shadow-none">
                   <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-impact-primary/5 rounded-bl-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 transition-transform group-hover:scale-110" />
                   <div className="flex items-start justify-between mb-4 relative z-10">
@@ -163,7 +168,17 @@ export default function Dashboard() {
             )}
           </div>
         </main>
+        
         <ChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+        
+        {/* EKLENDİ: Profil Modalı Bileşeni */}
+        <ProfileModal 
+          isOpen={isProfileModalOpen} 
+          onClose={() => setIsProfileModalOpen(false)} 
+          profileData={profileData} 
+          currentUser={currentUser} 
+        />
+        
       </div>
     </div>
   );

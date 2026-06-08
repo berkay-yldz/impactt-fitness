@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Activity, Dumbbell, Utensils, Camera, Crown, X } from "lucide-react";
+import { LayoutDashboard, Activity, Dumbbell, Utensils, Camera, Crown, X, Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/context/ThemeContext"; // EKLENDİ
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme(); // EKLENDİ
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -22,7 +24,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             IMPACT <span className="text-transparent bg-clip-text bg-gradient-to-r from-impact-primary to-impact-secondary">AI</span>
           </h1>
         </div>
-        {/* Mobilde Kapatma Butonu - 4. GÜN: Focus Ring Eklendi */}
         <button 
           className="lg:hidden text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary rounded-lg p-1 transition-all" 
           onClick={() => setIsOpen(false)}
@@ -39,7 +40,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               key={item.name}
               to={item.path}
               onClick={() => setIsOpen(false)} 
-              // 4. GÜN: Klavye erişilebilirliği için focus-visible eklendi
               className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary focus-visible:ring-offset-2 focus-visible:ring-offset-impact-surface ${
                 isActive
                   ? "bg-impact-primary/10 text-impact-primary border border-impact-primary/20"
@@ -53,12 +53,22 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           );
         })}
       </nav>
+
+      {/* GECE/GÜNDÜZ MODU BUTONU (Sidebar'ın En Altı) */}
+      <div className="pt-4 mt-4 border-t border-zinc-800">
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-3 px-3 py-3 w-full rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all font-medium"
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          {theme === "dark" ? "Gündüz Modu" : "Gece Modu"}
+        </button>
+      </div>
     </>
   );
 
   return (
     <>
-      {/* Mobil Karartma Efekti (Overlay) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -71,7 +81,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         )}
       </AnimatePresence>
 
-      {/* Menü Paneli */}
       <div
         className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-impact-surface border-r border-zinc-800 flex flex-col p-4 transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
