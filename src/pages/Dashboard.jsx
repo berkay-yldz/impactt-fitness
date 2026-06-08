@@ -46,7 +46,7 @@ export default function Dashboard() {
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <PageHeader
-          title="Kontrol Paneli"
+          title="Anasayfa"
           onMenuClick={() => setIsSidebarOpen(true)}
           profileData={profileData}
         />
