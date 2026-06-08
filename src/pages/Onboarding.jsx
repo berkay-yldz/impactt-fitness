@@ -14,6 +14,25 @@ const variants = {
   exit: (direction) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
 }
 
+const SelectionCard = ({ icon: Icon, title, desc, selected, onSelect }) => (
+  <div
+    onClick={onSelect}
+    className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
+      selected
+        ? "border-impact-primary bg-impact-primary/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+        : "border-zinc-800 bg-impact-surface hover:border-impact-primary/50"
+    }`}
+  >
+    <div className={`p-3 rounded-lg ${selected ? "bg-impact-primary text-black" : "bg-impact-dark text-zinc-400"}`}>
+      <Icon size={24} />
+    </div>
+    <div className="text-left">
+      <h3 className={`font-bold ${selected ? "text-impact-primary" : "text-white"}`}>{title}</h3>
+      <p className="text-sm text-zinc-400">{desc}</p>
+    </div>
+  </div>
+)
+
 export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(1)
@@ -51,27 +70,7 @@ export default function Onboarding() {
     }
   }
 
-  const SelectionCard = ({ icon: Icon, title, desc, value, field }) => {
-    const isSelected = formData[field] === value
-    return (
-      <div 
-        onClick={() => setFormData({ ...formData, [field]: value })}
-        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-4 ${
-          isSelected 
-            ? "border-impact-primary bg-impact-primary/10 shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
-            : "border-zinc-800 bg-impact-surface hover:border-impact-primary/50"
-        }`}
-      >
-        <div className={`p-3 rounded-lg ${isSelected ? "bg-impact-primary text-black" : "bg-impact-dark text-zinc-400"}`}>
-          <Icon size={24} />
-        </div>
-        <div className="text-left">
-          <h3 className={`font-bold ${isSelected ? "text-impact-primary" : "text-white"}`}>{title}</h3>
-          <p className="text-sm text-zinc-400">{desc}</p>
-        </div>
-      </div>
-    )
-  }
+  const selectCard = (field, value) => setFormData({ ...formData, [field]: value })
 
   return (
     <div className="min-h-screen bg-impact-dark flex flex-col items-center justify-center p-4 selection:bg-impact-primary/30 overflow-hidden">
@@ -134,9 +133,9 @@ export default function Onboarding() {
                   <p className="text-zinc-400 text-sm">Diyet ve antrenman modüllerin bu seçime göre kişiselleştirilecek.</p>
                 </div>
                 <div className="space-y-3">
-                  <SelectionCard icon={Flame} title="Kilo Verme" desc="Kalori açığı ve yağ yakımı odaklı program." value="weight_loss" field="fitnessGoal" />
-                  <SelectionCard icon={Dumbbell} title="Kas Kazanma" desc="Progresif aşırı yük ve yüksek protein odaklı." value="muscle_gain" field="fitnessGoal" />
-                  <SelectionCard icon={Activity} title="Kondisyon / Fit Kalma" desc="Dayanıklılık ve esneklik odaklı dengeli yaşam." value="endurance" field="fitnessGoal" />
+                  <SelectionCard icon={Flame} title="Kilo Verme" desc="Kalori açığı ve yağ yakımı odaklı program." selected={formData.fitnessGoal === "weight_loss"} onSelect={() => selectCard("fitnessGoal", "weight_loss")} />
+                  <SelectionCard icon={Dumbbell} title="Kas Kazanma" desc="Progresif aşırı yük ve yüksek protein odaklı." selected={formData.fitnessGoal === "muscle_gain"} onSelect={() => selectCard("fitnessGoal", "muscle_gain")} />
+                  <SelectionCard icon={Activity} title="Kondisyon / Fit Kalma" desc="Dayanıklılık ve esneklik odaklı dengeli yaşam." selected={formData.fitnessGoal === "endurance"} onSelect={() => selectCard("fitnessGoal", "endurance")} />
                 </div>
                 <div className="flex gap-3 mt-8">
                   <Button onClick={prevStep} variant="outline" className="w-1/3 bg-transparent border-zinc-800 text-white hover:bg-impact-surface h-12">
@@ -156,9 +155,9 @@ export default function Onboarding() {
                   <p className="text-zinc-400 text-sm">Egzersizlerin zorluk aşamaları spor geçmişine göre hizalanacak.</p>
                 </div>
                 <div className="space-y-3">
-                  <SelectionCard icon={Target} title="Başlangıç Seviyesi" desc="Daha önce düzenli olarak spor yapmadım." value="beginner" field="programLevel" />
-                  <SelectionCard icon={TrendingUp} title="Orta Seviye" desc="Temel hareketleri biliyorum, ara sıra antrenman yaparım." value="intermediate" field="programLevel" />
-                  <SelectionCard icon={Zap} title="İleri Seviye" desc="Uzun süredir düzenli ve disiplinli çalışıyorum." value="advanced" field="programLevel" />
+                  <SelectionCard icon={Target} title="Başlangıç Seviyesi" desc="Daha önce düzenli olarak spor yapmadım." selected={formData.programLevel === "beginner"} onSelect={() => selectCard("programLevel", "beginner")} />
+                  <SelectionCard icon={TrendingUp} title="Orta Seviye" desc="Temel hareketleri biliyorum, ara sıra antrenman yaparım." selected={formData.programLevel === "intermediate"} onSelect={() => selectCard("programLevel", "intermediate")} />
+                  <SelectionCard icon={Zap} title="İleri Seviye" desc="Uzun süredir düzenli ve disiplinli çalışıyorum." selected={formData.programLevel === "advanced"} onSelect={() => selectCard("programLevel", "advanced")} />
                 </div>
                 <div className="flex gap-3 mt-8">
                   <Button onClick={prevStep} variant="outline" className="w-1/3 bg-transparent border-zinc-800 text-white hover:bg-impact-surface h-12">

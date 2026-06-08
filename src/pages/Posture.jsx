@@ -68,24 +68,25 @@ export default function Posture() {
     }, 1000);
   };
 
-  // 1. ADIM: Sayaç Fabrikasını Başlat
+  // 1. ADIM: Sayaç Fabrikasını Başlat ve MediaPipe motoruna ilk egzersiz modunu bildir
   useEffect(() => {
     repCounter.current = createRepCounter();
+    setExerciseMode(selectedExercise);
 
     // Güvenlik Koruması: Kullanıcı kamerayı açık unutup sayfadan çıkarsa kamerayı kapat
     return () => stopCamera();
   }, []);
 
-  // 2. ADIM: Egzersiz Modu Değiştiğinde Motoru Güncelle
-  useEffect(() => {
-    setExerciseMode(selectedExercise);
+  const handleExerciseChange = (newExercise) => {
+    setSelectedExercise(newExercise);
+    setExerciseMode(newExercise);
     if (repCounter.current && repCounter.current.reset) {
-      repCounter.current.reset(); // Sayaç sıfırlanır
+      repCounter.current.reset();
     }
     setRepCount(0);
     setFormStatus("idle");
     setFeedbackMsg("Sinyal bekleniyor...");
-  }, [selectedExercise]);
+  };
 
   // 3. ADIM: Canlı Analiz Köprüsü (MediaPipe -> angleMath -> Arayüz)
   // 3. ADIM: Canlı Analiz Köprüsü ve Ekrana Çizim (MediaPipe -> Canvas -> UI)
@@ -231,7 +232,7 @@ export default function Posture() {
                   <div className="relative flex-1">
                     <select
                       value={selectedExercise}
-                      onChange={(e) => setSelectedExercise(e.target.value)}
+                      onChange={(e) => handleExerciseChange(e.target.value)}
                       disabled={isRunning}
                       className="w-full appearance-none bg-zinc-50 dark:bg-impact-dark border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-impact-primary disabled:opacity-50 cursor-pointer transition-colors"
                     >

@@ -39,7 +39,7 @@ export default function Discipline() {
   }, []);
 
   const handleLogout = async () => {
-    try { await logoutUser(); navigate("/"); } catch (error) {}
+    try { await logoutUser(); navigate("/"); } catch (error) { console.error("Logout hatası:", error); }
   };
 
   return (

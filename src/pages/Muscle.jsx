@@ -81,7 +81,7 @@ export default function Muscle() {
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
   const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
 
-  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch (error) {} };
+  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch (error) { console.error("Logout hatası:", error); } };
 
   const toggleExercise = async (id, targetMuscle) => {
     setActiveMuscleGroup(targetMuscle);
