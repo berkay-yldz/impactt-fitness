@@ -48,9 +48,9 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden flex selection:bg-impact-primary/30">
+    <div className="min-h-screen w-full relative overflow-hidden flex items-center justify-center selection:bg-impact-primary/30">
       
-      {/* VİDEO ARKA PLAN - YENİ EKLENDİ */}
+      {/* YENİ VİDEO BURAYA EKLENDİ */}
       <video
         autoPlay
         loop
@@ -58,23 +58,23 @@ export default function Auth() {
         playsInline
         className="absolute inset-0 w-full h-full object-cover z-0"
       >
-        <source src="/assets/hero-fitness.mp4" type="video/mp4" />
+        <source src="/assets/fitness-bg-2.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/70 z-0" />
 
-      {/* SOL PANEL - FORM BÖLÜMÜ (z-10 ekleyerek videonun önüne aldık) */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 z-10">
+      {/* MERKEZE ALINMIŞ FORM BÖLÜMÜ */}
+      <div className="w-full flex flex-col items-center justify-center p-4 sm:p-8 z-10 relative">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="w-full max-w-md space-y-8">
           <div className="text-center space-y-2 mb-8">
-            <h1 className="text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
               IMPACT <span className="text-impact-primary">AI</span>
             </h1>
-            <p className="text-sm text-zinc-400">Sınırlarını zorlamaya hazır mısın?</p>
+            <p className="text-sm text-zinc-300 drop-shadow-sm">Sınırlarını zorlamaya hazır mısın?</p>
           </div>
 
-          <div className="bg-impact-surface/90 p-8 rounded-2xl border border-zinc-800/50 shadow-2xl backdrop-blur-md w-full">
+          <div className="bg-impact-surface/80 p-8 rounded-2xl border border-zinc-800/50 shadow-2xl backdrop-blur-md w-full">
             <Tabs defaultValue="login" className="flex flex-col w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8 bg-impact-dark p-1 rounded-lg border border-zinc-800/50">
+              <TabsList className="grid w-full grid-cols-2 mb-8 bg-zinc-900/80 p-1 rounded-lg border border-zinc-800/50">
                 <TabsTrigger value="login" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary rounded-md">Giriş Yap</TabsTrigger>
                 <TabsTrigger value="register" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-impact-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary rounded-md">Kayıt Ol</TabsTrigger>
               </TabsList>
@@ -83,11 +83,11 @@ export default function Auth() {
                 <form onSubmit={handleLogin} className="flex flex-col gap-5 w-full">
                   <div className="relative w-full group">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
-                    <Input type="email" placeholder="E-posta adresi" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
+                    <Input type="email" placeholder="E-posta adresi" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-11 bg-zinc-900/60 border-zinc-700 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
                   </div>
                   <div className="relative w-full group">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
-                    <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
+                    <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-zinc-900/60 border-zinc-700 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
                   </div>
                   <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)]" disabled={isLoading}>
                     {isLoading ? "Giriş Yapılıyor..." : "Giriş Yap"}
@@ -99,15 +99,15 @@ export default function Auth() {
                 <form onSubmit={handleRegister} className="flex flex-col gap-5 w-full">
                   <div className="relative w-full group">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
-                    <Input type="text" placeholder="Ad Soyad" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
+                    <Input type="text" placeholder="Ad Soyad" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full pl-11 bg-zinc-900/60 border-zinc-700 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
                   </div>
                   <div className="relative w-full group">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
-                    <Input type="email" placeholder="E-posta adresi" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
+                    <Input type="email" placeholder="E-posta adresi" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-11 bg-zinc-900/60 border-zinc-700 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
                   </div>
                   <div className="relative w-full group">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500 group-focus-within:text-impact-primary transition-colors" />
-                    <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-impact-dark/50 border-zinc-800 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
+                    <Input type="password" placeholder="Şifre" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full pl-11 bg-zinc-900/60 border-zinc-700 text-white h-12 focus-visible:ring-1 focus-visible:ring-impact-primary transition-all" required />
                   </div>
                   <Button type="submit" className="w-full h-12 mt-4 bg-impact-primary hover:bg-impact-primary/90 text-black font-bold text-lg transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)]" disabled={isLoading}>
                     {isLoading ? "Hesap Oluşturuluyor..." : "Hesap Oluştur"}
@@ -117,11 +117,6 @@ export default function Auth() {
             </Tabs>
           </div>
         </motion.div>
-      </div>
-
-      {/* SAĞ PANEL (Mobil gizli, videolu olduğu için artık burada karakteri göstermiyoruz) */}
-      <div className="hidden lg:flex w-1/2 relative items-center justify-center">
-        {/* Karakter asset'ini istersen buraya ekleyebilirsin ama video arkada olduğu için artık gereksiz olabilir */}
       </div>
 
     </div>
