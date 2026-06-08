@@ -74,7 +74,7 @@ export default function Nutrition() {
           <a href="/nutrition" className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20 transition-colors">
             <Utensils className="w-5 h-5" /> Beslenme
           </a>
-          <a href="/premium" className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-zinc-800 hover:text-white transition-colors">
+          <a href="/discipline" className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-zinc-800 hover:text-white transition-colors">
             <div className="flex items-center gap-3">
               <Camera className="w-5 h-5" /> Disiplin (Premium)
             </div>
