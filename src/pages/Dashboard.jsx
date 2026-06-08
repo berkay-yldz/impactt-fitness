@@ -1,13 +1,11 @@
-import ProfileModal from "@/components/ui/ProfileModal";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, LogOut, User as UserIcon, Sparkles, Flame, Dumbbell, Utensils, ChevronRight } from "lucide-react";
+import { Flame, Dumbbell, Utensils, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Sidebar from "@/components/ui/Sidebar";
-import ChatWindow from "@/components/Chatbot/ChatWindow";
+import PageHeader from "@/components/ui/PageHeader";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/services/authService";
 import { getUserProfile } from "@/services/dbService";
 
 const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.15 } } };
@@ -15,8 +13,6 @@ const cardVariants = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, 
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // EKLENDİ: Profil modalı kontrol state'i
   const [profileData, setProfileData] = useState({ streak: 0, programLevel: "beginner", fitnessGoal: "muscle_gain" });
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
@@ -42,13 +38,6 @@ export default function Dashboard() {
     fetchUserData();
   }, [location, navigate, currentUser]);
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate("/");
-    } catch (error) {}
-  };
-
   const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
   return (
@@ -56,36 +45,11 @@ export default function Dashboard() {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-impact-surface flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-zinc-500 dark:text-zinc-400 hover:text-impact-primary transition-colors" onClick={() => setIsSidebarOpen(true)}>
-              <Menu className="w-6 h-6" />
-            </button>
-            <h2 className="text-lg sm:text-xl font-bold hidden sm:block">Kontrol Paneli</h2>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button onClick={() => setIsChatOpen(true)} className="flex items-center gap-2 bg-impact-primary/10 hover:bg-impact-primary/20 text-impact-primary border border-impact-primary/30 px-3 py-1.5 rounded-full transition-all font-medium text-sm">
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">AI Koç</span>
-            </button>
-            
-            {/* DEĞİŞTİRİLDİ: Kullanıcı ismi artık profil modalını açan bir buton */}
-            <button 
-              onClick={() => setIsProfileModalOpen(true)}
-              className="hidden md:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 ml-2 transition-colors duration-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-impact-primary"
-            >
-              <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400">
-                <UserIcon className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{currentUser?.displayName || "Sporcu"}</span>
-            </button>
-
-            <button onClick={handleLogout} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 rounded-lg transition-colors ml-1">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </header>
+        <PageHeader
+          title="Kontrol Paneli"
+          onMenuClick={() => setIsSidebarOpen(true)}
+          profileData={profileData}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-10">
@@ -168,17 +132,6 @@ export default function Dashboard() {
             )}
           </div>
         </main>
-        
-        <ChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-        
-        {/* EKLENDİ: Profil Modalı Bileşeni */}
-        <ProfileModal 
-          isOpen={isProfileModalOpen} 
-          onClose={() => setIsProfileModalOpen(false)} 
-          profileData={profileData} 
-          currentUser={currentUser} 
-        />
-        
       </div>
     </div>
   );

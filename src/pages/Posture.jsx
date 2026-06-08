@@ -1,370 +1,302 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Menu,
-  LogOut,
-  User as UserIcon,
-  Activity,
-  Play,
-  Square,
-  CheckCircle,
-  AlertTriangle,
-  ChevronDown,
-} from "lucide-react";
+import { Activity, CheckCircle2, Circle, Trophy, Info, XCircle, ArrowRight, Calendar } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
-import ChatWindow from "@/components/Chatbot/ChatWindow";
-import CameraFeed from "@/components/CameraFeed/CameraFeed";
+import PageHeader from "@/components/ui/PageHeader";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/services/authService";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import Lottie from "lottie-react";
 
-// 🚨 BERKAY'IN MOTORU: MediaPipe ve Matematik Fonksiyonları İçe Aktarıldı
-import {
-  initPose,
-  startCamera,
-  stopCamera,
-  setExerciseMode,
-} from "@/utils/mediapipeCore";
-import { createRepCounter } from "@/utils/angleMath";
+import { getUserProfile } from "@/services/dbService";
+import { recordExerciseResult } from "@/utils/adaptiveLogic";
+import programDecks from "@/data/programDecks.json";
+
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/services/firebase";
+
+const SafeLottie = Lottie && Lottie.default ? Lottie.default : Lottie;
+const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
+const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } } };
+const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
 export default function Posture() {
-  // KALİBRASYON MOTORU STATE'LERİ
-  const [countdown, setCountdown] = useState(null);
-  const [baselineLandmarks, setBaselineLandmarks] = useState(null);
-  const calibrateFlag = useRef(false);
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [trophyAnimation, setTrophyAnimation] = useState(null);
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
 
-  // DOM ve MediaPipe Referansları
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const poseInstance = useRef(null); // MediaPipe modelini tutar
-  const repCounter = useRef(null); // Matematiksel tekrar sayacını tutar
+  const [programLevel, setProgramLevel] = useState("beginner");
+  const [exercises, setExercises] = useState([]);
+  const [isAllCompleted, setIsAllCompleted] = useState(false);
+  const [activeMuscleGroup, setActiveMuscleGroup] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Arayüz ve Analiz State'leri
-  const [isRunning, setIsRunning] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState("squat");
-  const [formStatus, setFormStatus] = useState("idle"); // idle, good, bad
-  const [feedbackMsg, setFeedbackMsg] = useState("Sinyal bekleniyor..."); // Dinamik yapay zeka mesajı
-  const [repCount, setRepCount] = useState(0);
-  const targetReps = 10;
+  const [currentWeek, setCurrentWeek] = useState(1);
+  const [currentDay, setCurrentDay] = useState(1);
 
-  const startCalibration = () => {
-    setCountdown(3);
-    let timer = 3;
-    const interval = setInterval(() => {
-      timer -= 1;
-      if (timer > 0) {
-        setCountdown(timer);
-      } else {
-        clearInterval(interval);
-        setCountdown(null);
-        calibrateFlag.current = true; // Süre bitti! Bir sonraki karede pozu yakala.
+  useEffect(() => {
+    const fetchUserProgram = async () => {
+      if (!currentUser) return;
+
+      try {
+        const profile = await getUserProfile(currentUser.uid);
+        const level = profile?.programLevel || "beginner";
+        const week = profile?.postureWeek || 1;
+        const day = profile?.postureDay || 1;
+
+        setProgramLevel(level);
+        setCurrentWeek(week);
+        setCurrentDay(day);
+
+        if (programDecks?.posture?.[level]) {
+          const todaysExercises = programDecks.posture[level]
+            .filter(ex => ex.week === week && ex.day === day)
+            .map(ex => ({ ...ex, isCompleted: false }));
+          setExercises(todaysExercises);
+        }
+      } catch (error) {
+        console.error("Postür programı yüklenirken hata:", error);
+        toast.error("Program yüklenemedi.");
+      } finally {
+        setIsLoading(false);
       }
-    }, 1000);
+    };
+
+    fetchUserProgram();
+
+    fetch("/lottie/trophy.json")
+      .then((res) => res.json())
+      .then((data) => setTrophyAnimation(data))
+      .catch(() => console.error("Kupa animasyonu yüklenemedi"));
+  }, [currentUser]);
+
+  const completedCount = exercises.filter(ex => ex.isCompleted).length;
+  const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
+
+  const toggleExercise = async (id, targetMuscle) => {
+    setActiveMuscleGroup(targetMuscle);
+
+    setExercises(prev => {
+      const updated = prev.map(ex => ex.id === id ? { ...ex, isCompleted: !ex.isCompleted } : ex);
+      const allDone = updated.length > 0 && updated.every(ex => ex.isCompleted);
+
+      if (allDone && !isAllCompleted) { triggerConfetti(); setIsAllCompleted(true); }
+      else if (!allDone) { setIsAllCompleted(false); }
+      return updated;
+    });
+
+    const targetEx = exercises.find(e => e.id === id);
+    if (targetEx && !targetEx.isCompleted && currentUser?.uid) {
+      await recordExerciseResult(currentUser.uid, id, "success", programLevel);
+    }
   };
 
-  // 1. ADIM: Sayaç Fabrikasını Başlat
-  useEffect(() => {
-    repCounter.current = createRepCounter();
+  const handleFailTest = async (id, e) => {
+    e.stopPropagation();
+    if (!currentUser?.uid) return;
 
-    // Güvenlik Koruması: Kullanıcı kamerayı açık unutup sayfadan çıkarsa kamerayı kapat
-    return () => stopCamera();
-  }, []);
+    toast.error("Zorlanma Kaydedildi", { description: "Yapay zeka bunu hafızaya aldı." });
 
-  // 2. ADIM: Egzersiz Modu Değiştiğinde Motoru Güncelle
-  useEffect(() => {
-    setExerciseMode(selectedExercise);
-    if (repCounter.current && repCounter.current.reset) {
-      repCounter.current.reset(); // Sayaç sıfırlanır
-    }
-    setRepCount(0);
-    setFormStatus("idle");
-    setFeedbackMsg("Sinyal bekleniyor...");
-  }, [selectedExercise]);
+    const result = await recordExerciseResult(currentUser.uid, id, "fail", programLevel);
 
-  // 3. ADIM: Canlı Analiz Köprüsü (MediaPipe -> angleMath -> Arayüz)
-  // 3. ADIM: Canlı Analiz Köprüsü ve Ekrana Çizim (MediaPipe -> Canvas -> UI)
-  const handlePoseResults = (results, analysisResult) => {
-    // KALİBRASYON KAPAN KAPANI: Sayaç bittiyse ve iskelet varsa, pozu dondur ve kaydet!
-    if (calibrateFlag.current && results.poseLandmarks) {
-      setBaselineLandmarks(results.poseLandmarks);
-      calibrateFlag.current = false;
-      toast.success("Kalibrasyon Tamamlandı!", {
-        description: "Orijinal duruşunuz başarıyla hafızaya alındı.",
+    if (result && result.downgraded) {
+      toast.info("Programınız Hafifletildi!", {
+        description: `Bugünkü zorlanmanızdan dolayı oturum programınız ${levelText[result.newLevel]} olarak güncellendi.`,
+        icon: "🤖"
       });
-      console.log("KAYDEDİLEN REFERANS POZ:", results.poseLandmarks);
-    }
 
-    // --- 1. GÖRÜNTÜYÜ VİTRİNE (CANVAS'A) ÇİZME OPERASYONU ---
-    if (canvasRef.current && videoRef.current && results.image) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-
-      // Tuval boyutlarını, kameradan gelen orijinal boyutlarla eşitle
-      canvas.width = videoRef.current.videoWidth || 640;
-      canvas.height = videoRef.current.videoHeight || 480;
-
-      ctx.save();
-      // Önceki kareyi temizle
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Aynalama Efekti: Kullanıcı sağ elini kaldırınca ekranda da sağ el kalksın
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-
-      // Yapay Zekanın gördüğü o anlık kareyi tuvale bas!
-      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-      ctx.restore();
-    }
-
-    // --- 2. MATEMATİKSEL SONUÇLARI ARAYÜZE AKTARMA ---
-    if (!analysisResult) return;
-
-    setFormStatus(analysisResult.status);
-    setFeedbackMsg(analysisResult.feedback);
-
-    if (repCounter.current && analysisResult.angle !== undefined) {
-      const currentReps = repCounter.current.processAngle(analysisResult.angle);
-      setRepCount(currentReps);
+      setProgramLevel(result.newLevel);
+      if (programDecks?.posture?.[result.newLevel]) {
+        const newExercises = programDecks.posture[result.newLevel]
+          .filter(ex => ex.week === currentWeek && ex.day === currentDay)
+          .map(ex => ({ ...ex, isCompleted: false }));
+        setExercises(newExercises);
+        setIsAllCompleted(false);
+      }
     }
   };
-  const handleLogout = async () => {
+
+  const advanceToNextDay = async () => {
+    if (!currentUser?.uid) return;
+
+    let nextDay = currentDay + 1;
+    let nextWeek = currentWeek;
+
+    if (nextDay > 3) {
+      nextDay = 1;
+      nextWeek += 1;
+    }
+
     try {
-      await logoutUser();
-      navigate("/");
-    } catch (error) {
-      toast.error("Çıkış yapılamadı");
-    }
-  };
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, { postureWeek: nextWeek, postureDay: nextDay });
 
-  const toggleCamera = () => {
-    if (!isRunning) {
-      toast.success("Kamera Sahnesi Hazırlanıyor", {
-        description: "Lütfen kadraja tam olarak girmeye hazır olun.",
-      });
-      setIsRunning(true);
-      setFormStatus("good");
-      setFeedbackMsg("Model yükleniyor, lütfen bekleyin...");
+      setCurrentWeek(nextWeek);
+      setCurrentDay(nextDay);
+      setIsAllCompleted(false);
+      setActiveMuscleGroup("");
 
-      // Motoru Ateşle
-      poseInstance.current = initPose(handlePoseResults);
-      startCamera(videoRef.current, poseInstance.current);
-    } else {
-      toast.info("Antrenman Sonlandırıldı");
-      setIsRunning(false);
-      setFormStatus("idle");
-      setFeedbackMsg("Sinyal bekleniyor...");
-      setRepCount(0);
-
-      // Motoru Durdur
-      stopCamera();
-      if (repCounter.current && repCounter.current.reset) {
-        repCounter.current.reset();
+      if (programDecks?.posture?.[programLevel]) {
+        const newExercises = programDecks.posture[programLevel]
+          .filter(ex => ex.week === nextWeek && ex.day === nextDay)
+          .map(ex => ({ ...ex, isCompleted: false }));
+        setExercises(newExercises);
       }
+
+      toast.success(`${nextWeek}. Hafta, ${nextDay}. Gün Postür Antrenmanına Geçildi!`, { icon: "🗓️" });
+    } catch (error) {
+      console.error("Güncellenirken hata oluştu:", error);
+      toast.error("Sonraki güne geçilemedi!");
     }
   };
 
-  const progressPercent = Math.min((repCount / targetReps) * 100, 100);
+  const triggerConfetti = () => {
+    try {
+      const fire = typeof confetti === "function" ? confetti : confetti.default;
+      if (fire) fire({ particleCount: 140, spread: 65, origin: { y: 0.6 }, colors: ['#FF6B35', '#10b981', '#3b82f6'] });
+    } catch (error) {
+      console.error("Confetti hatası:", error);
+    }
+    toast.success("Postür Antrenmanı Tamamlandı!", { description: "Duruşun her geçen gün daha iyi!", icon: "🧍" });
+  };
 
   return (
     <div className="flex h-screen bg-zinc-50 dark:bg-impact-dark overflow-hidden text-zinc-900 dark:text-white transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-impact-surface flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden p-2 text-zinc-500 dark:text-zinc-400 hover:text-impact-primary"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h2 className="text-lg sm:text-xl font-bold hidden sm:flex items-center gap-2">
-              <Activity className="w-5 h-5 text-impact-primary" /> Postür Modülü
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 ml-2">
-              <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-                <UserIcon className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {currentUser?.displayName || "Sporcu"}
-              </span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-zinc-500 hover:text-red-500 rounded-lg ml-1 transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </header>
+        <PageHeader
+          title="Postür Modülü"
+          icon={Activity}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
-          <div className="max-w-6xl mx-auto pb-20">
-            <header className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                Duruş & Form{" "}
-                <span className="text-impact-primary">Analiz Laboratuvarı</span>
-              </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-                Seviyene uygun hareketi seç ve yapay zeka eşliğinde formunu
-                analiz et.
-              </p>
-            </header>
+          <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-20">
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-impact-surface p-5 sm:p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+              <div className="flex-1 w-full">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-xl sm:text-3xl font-black tracking-tight">Günün Postür Programı</h1>
+                  <span className="flex items-center gap-1.5 bg-impact-primary/10 text-impact-primary px-3 py-1 rounded-lg text-xs font-bold border border-impact-primary/20">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Hafta {currentWeek} • Gün {currentDay}
+                  </span>
+                </div>
+
+                <div className="w-full max-w-md pr-4 mt-4">
+                  <div className="flex justify-between text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                    <span>İlerleme</span>
+                    <span>{completedCount} / {exercises.length}</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-900 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercentage}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className="h-full bg-impact-primary rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                  <Activity className="w-4 h-4 text-impact-primary" />
+                  <span className="text-sm font-bold">{levelText[programLevel] || "Yükleniyor..."}</span>
+                </div>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="lg:col-span-2 space-y-4">
-                <CameraFeed
-                  videoRef={videoRef}
-                  canvasRef={canvasRef}
-                  isRunning={isRunning}
-                />
 
-                <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-impact-surface p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                  <div className="relative flex-1">
-                    <select
-                      value={selectedExercise}
-                      onChange={(e) => setSelectedExercise(e.target.value)}
-                      disabled={isRunning}
-                      className="w-full appearance-none bg-zinc-50 dark:bg-impact-dark border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-impact-primary disabled:opacity-50 cursor-pointer transition-colors"
-                    >
-                      <option value="squat">🔥 Çömelme (Squat) Modu</option>
-                      <option value="pushup">💪 Şınav (Push-up) Modu</option>
-                      <option value="plank">
-                        🛡️ Karın İzometrik (Plank) Modu
-                      </option>
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 pointer-events-none" />
+                {isLoading ? (
+                  <div className="text-center p-8 text-zinc-500">Postür programınız hazırlanıyor...</div>
+                ) : exercises.length === 0 ? (
+                  <div className="text-center p-8 text-zinc-500 font-medium bg-white dark:bg-impact-surface rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                    {currentWeek}. Hafta, {currentDay}. Gün için planlanmış postür hareketi bulunamadı.
                   </div>
+                ) : (
+                  <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-3">
+                    {exercises.map((ex, index) => (
+                      <motion.div
+                        key={ex.id} variants={itemVariants} onClick={() => toggleExercise(ex.id, ex.targetMuscle)}
+                        className={`group cursor-pointer flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-300 shadow-sm ${ex.isCompleted ? "bg-impact-primary/5 border-impact-primary/20" : "bg-white dark:bg-impact-surface border-zinc-200 dark:border-zinc-800 hover:border-impact-primary/40"}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`${ex.isCompleted ? "text-impact-primary" : "text-zinc-300 dark:text-zinc-600"}`}>
+                            {ex.isCompleted ? <CheckCircle2 className="w-6 h-6 sm:w-7 h-7" /> : <Circle className="w-6 h-6 sm:w-7 h-7" />}
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">Hareket {index + 1} — {ex.targetMuscle}</span>
+                            <h3 className={`text-base sm:text-lg font-bold ${ex.isCompleted ? "text-zinc-400 line-through decoration-impact-primary/40" : ""}`}>{ex.name}</h3>
+                          </div>
+                        </div>
 
-                  <button
-                    onClick={toggleCamera}
-                    className={`flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-bold text-sm transition-all sm:w-auto w-full ${
-                      isRunning
-                        ? "bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20"
-                        : "bg-impact-primary text-black hover:bg-impact-secondary shadow-[0_0_15px_rgba(249,115,22,0.2)]"
-                    }`}
-                  >
-                    {isRunning ? (
-                      <>
-                        <Square className="w-4 h-4 fill-current" /> Analizi
-                        Bitir
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 fill-current" /> Kamera Aç
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={startCalibration}
-                    className="bg-impact-primary text-black font-bold py-2 px-4 rounded-xl hover:opacity-80"
-                  >
-                    {countdown !== null
-                      ? `Kalibrasyon: ${countdown}`
-                      : "Hazırım (Kalibrasyon)"}
-                  </button>
-                </div>
+                        <div className="flex gap-2 sm:gap-4 items-center font-black text-sm sm:text-base">
+                          <button
+                            onClick={(e) => handleFailTest(ex.id, e)}
+                            className="p-1.5 sm:p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Zorlandım (Adaptif Düşürme Testi)"
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
+
+                          <div className={`flex gap-2 ${ex.isCompleted ? "opacity-40" : "opacity-100"}`}>
+                            <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.sets} <span className="text-[10px] text-zinc-400 uppercase">Set</span></div>
+                            <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.reps} <span className="text-[10px] text-zinc-400 uppercase">Rep</span></div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm text-center relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-zinc-100 dark:bg-zinc-800">
-                    <motion.div
-                      className="h-full bg-impact-primary"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercent}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
+                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-6">
+                  <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><Info className="w-4 h-4 text-impact-primary" /> Hedef Bölge</h3>
+                  <div className="aspect-square bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60" />
+                    <Activity className="w-24 h-24 text-impact-primary/40 relative z-10" />
+                    <div className="absolute bottom-4 left-0 right-0 text-center">
+                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{activeMuscleGroup || "Hareket Seç"}</span>
+                    </div>
                   </div>
-
-                  <h3 className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest mb-2 mt-2">
-                    Mevcut Set Tamamlama
-                  </h3>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-7xl font-black text-zinc-900 dark:text-white tabular-nums tracking-tighter">
-                      {repCount}
-                    </span>
-                    <span className="text-xl text-zinc-400 dark:text-zinc-500 font-medium">
-                      / {targetReps}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                  <h3 className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">
-                    Gerçek Zamanlı Geri Bildirim
-                  </h3>
 
                   <AnimatePresence mode="wait">
-                    {formStatus === "idle" && (
-                      <motion.div
-                        key="idle"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center gap-3 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-800/50 text-zinc-400 dark:text-zinc-500"
-                      >
-                        <Activity className="w-5 h-5" />
-                        <span className="font-semibold text-xs uppercase tracking-wider">
-                          {feedbackMsg}
-                        </span>
-                      </motion.div>
-                    )}
-
-                    {formStatus === "good" && (
-                      <motion.div
-                        key="good"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                      >
-                        <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                        <div>
-                          <span className="block font-bold text-sm">
-                            Form Kusursuz!
-                          </span>
-                          <span className="text-xs opacity-90">
-                            {feedbackMsg}
-                          </span>
+                    {isAllCompleted && exercises.length > 0 ? (
+                      <motion.div key="success-box" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="mt-6 p-6 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-24 h-24 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                          {trophyAnimation ? (
+                            <SafeLottie animationData={trophyAnimation} loop={true} className="w-full h-full object-contain" />
+                          ) : (
+                            <Trophy className="w-16 h-16 text-impact-primary animate-bounce mx-auto" />
+                          )}
                         </div>
-                      </motion.div>
-                    )}
-
-                    {formStatus === "bad" && (
-                      <motion.div
-                        key="bad"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 shadow-sm"
-                      >
-                        <AlertTriangle className="w-5 h-5 flex-shrink-0" />
                         <div>
-                          <span className="block font-bold text-sm">
-                            Postür Sapması!
-                          </span>
-                          <span className="text-xs opacity-90">
-                            {feedbackMsg}
-                          </span>
+                          <p className="font-black text-lg text-white">Günün Postür Görevi Bitti!</p>
                         </div>
+
+                        <button
+                          onClick={advanceToNextDay}
+                          className="w-full mt-2 flex items-center justify-center gap-2 bg-impact-primary text-black font-bold py-3 px-4 rounded-xl hover:bg-impact-secondary transition-colors"
+                        >
+                          Sonraki Antrenmana Geç <ArrowRight className="w-5 h-5" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="info-box" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-6 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-xs font-medium text-center">
+                        {activeMuscleGroup ? `Şu an hedeflenen bölge: ${activeMuscleGroup}` : "Listeyi tamamla."}
                       </motion.div>
                     )}
                   </AnimatePresence>
+
                 </div>
               </div>
             </div>
           </div>
         </main>
-        <ChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       </div>
     </div>
   );

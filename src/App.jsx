@@ -45,7 +45,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <Toaster theme="dark" position="bottom-right" />
+      <Toaster position="bottom-right" />
     </>
   );
 }
