@@ -57,7 +57,7 @@ export default function Nutrition() {
         </div>
 
         <nav className="flex flex-col gap-2 px-4 mt-2 font-medium text-sm text-zinc-400">
-          <a href="/" className="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-zinc-800 hover:text-white transition-colors">
+          <a href="/dashboard" className="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-zinc-800 hover:text-white transition-colors">
             <LayoutDashboard className="w-5 h-5" /> Dashboard
           </a>
           <a href="/posture" className="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-zinc-800 hover:text-white transition-colors">
