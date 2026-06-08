@@ -3,12 +3,16 @@ import { motion } from "framer-motion";
 import { Menu, LogOut, User as UserIcon, Flame, ShieldCheck, Lock, CalendarDays, Award } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import ChatWindow from "@/components/Chatbot/ChatWindow";
-// AKTİF EDİLDİ: Başarı Hikayeleri (Testimonials) bileşeni artık sayfaya dahil.
 import Testimonials from "@/components/Testimonials/Testimonials"; 
 import { useAuth } from "@/context/AuthContext";
 import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
+
+// 🚀 KURŞUNGEÇİRMEZ (FAIL-SAFE) MEKANİZMASI: 
+// Eğer import edilen bileşen yanlışlıkla obje olarak gelirse, sayfayı çökertmesini engeller.
+const SafeTestimonials = typeof Testimonials === 'function' ? Testimonials : (Testimonials?.Testimonials || null);
+const SafeLottie = typeof Lottie === 'function' ? Lottie : (Lottie?.default || null);
 
 export default function Discipline() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -79,8 +83,8 @@ export default function Discipline() {
                 <h3 className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Mevcut İstikrar Serisi</h3>
                 
                 <div className="w-32 h-32 mb-2 flex items-center justify-center drop-shadow-[0_0_25px_rgba(249,115,22,0.4)]">
-                  {fireAnimation ? (
-                    <Lottie animationData={fireAnimation} loop={true} className="w-full h-full object-contain" />
+                  {SafeLottie && fireAnimation ? (
+                    <SafeLottie animationData={fireAnimation} loop={true} className="w-full h-full object-contain" />
                   ) : (
                     <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
                       <Flame className="w-24 h-24 text-impact-primary" fill="currentColor" />
@@ -132,24 +136,32 @@ export default function Discipline() {
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {badges.map((badge) => (
-                  <div key={badge.id} className={`relative p-5 rounded-2xl border flex flex-col items-center text-center transition-all duration-300 ${badge.isEarned ? "bg-zinc-50 dark:bg-zinc-900/50 border-impact-primary/30" : "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 opacity-60 grayscale"}`}>
-                    {!badge.isEarned && (
-                      <div className="absolute top-3 right-3 text-zinc-400">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                    )}
-                    <badge.icon className={`w-12 h-12 mb-3 ${badge.isEarned ? "text-impact-primary" : "text-zinc-400"}`} />
-                    <h4 className={`text-sm font-bold ${badge.isEarned ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`}>{badge.title}</h4>
-                    <p className="text-[10px] text-zinc-400 uppercase tracking-widest mt-1">{badge.desc}</p>
-                  </div>
-                ))}
+                {badges.map((badge) => {
+                  const IconComponent = badge.icon; // 🚀 React kurallarına uygun render
+                  return (
+                    <div key={badge.id} className={`relative p-5 rounded-2xl border flex flex-col items-center text-center transition-all duration-300 ${badge.isEarned ? "bg-zinc-50 dark:bg-zinc-900/50 border-impact-primary/30" : "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 opacity-60 grayscale"}`}>
+                      {!badge.isEarned && (
+                        <div className="absolute top-3 right-3 text-zinc-400">
+                          <Lock className="w-4 h-4" />
+                        </div>
+                      )}
+                      <IconComponent className={`w-12 h-12 mb-3 ${badge.isEarned ? "text-impact-primary" : "text-zinc-400"}`} />
+                      <h4 className={`text-sm font-bold ${badge.isEarned ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`}>{badge.title}</h4>
+                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest mt-1">{badge.desc}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* AKTİF EDİLDİ: Başarı Hikayeleri (Testimonials) alanı yorumdan çıkarıldı. */}
             <div className="mt-8 border-t border-zinc-200 dark:border-zinc-800 pt-8">
-              <Testimonials />
+              {SafeTestimonials ? (
+                <SafeTestimonials />
+              ) : (
+                <div className="p-4 bg-red-100 text-red-600 border border-red-300 rounded-xl text-center font-bold">
+                  Testimonials bileşeni yüklenemedi! Lütfen dosyadaki "export" kullanımını kontrol et.
+                </div>
+              )}
             </div>
 
           </div>
