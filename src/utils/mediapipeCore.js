@@ -1,62 +1,111 @@
-import { Pose } from '@mediapipe/pose';
-import { Camera } from '@mediapipe/camera_utils';
+import { analyzeSquatForm, analyzePushupForm, analyzePlankForm } from "./angleMath";
 
 /**
- * IMPACT Fitness - MediaPipe Pose Çekirdeği
- * Anayasa Kuralı: Sadece istemci tarafında (Client-side) çalışır, video verisi sunucuya GİTMEZ.
+ * IMPACT Fitness - MediaPipe Pose Çekirdeği (CDN/Window Yöntemi + SES MOTORU)
  */
 
-// 1. Pose Motorunu Başlatma Fonksiyonu
-export const initPoseModel = (onResultsCallback) => {
-  const pose = new Pose({
-    locateFile: (file) => {
-      // Modeli CDN üzerinden çekerek projeyi (bundle size) şişirmiyoruz
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+let camera = null;
+let currentExerciseMode = "squat"; 
+
+// --- SES MOTORU (Web Audio API) ---
+let audioCtx = null;
+let lastBeepTime = 0;
+let lastStatus = null;
+
+const playTone = (status) => {
+  // Sadece "good" (iyi form) veya "bad" (bozuk form) için ses çıkar
+  if (status !== "good" && status !== "bad") return;
+  
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const now = Date.now();
+    // Tarayıcıyı çökertmemek ve makinalı tüfek gibi ötmemesi için "Throttle" (Fren) mekanizması:
+    // Eğer durum aynıysa 2 saniyede bir öt. Ama durum değişirse (İyi -> Kötü) ANINDA öt!
+    if (status === lastStatus && now - lastBeepTime < 2000) return;
+    
+    lastBeepTime = now;
+    lastStatus = status;
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    if (status === "good") {
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // İnce, pozitif "Bip"
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.15); 
+    } else if (status === "bad") {
+      oscillator.type = "sawtooth";
+      oscillator.frequency.setValueAtTime(250, audioCtx.currentTime); // Kalın, uyarıcı "Bızzz"
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3); 
     }
-  });
+  } catch (error) {
+    console.warn("Ses motoru için ekrana tıklanması gerekiyor:", error);
+  }
+};
+
+export const setExerciseMode = (mode) => {
+  if (["squat", "pushup", "plank"].includes(mode)) {
+    currentExerciseMode = mode;
+  }
+};
+
+export const initPose = (onResultsCallback) => {
+  const Pose = window.Pose;
+  if (!Pose) {
+    console.error("MediaPipe CDN yüklenemedi!");
+    return null;
+  }
+
+  const pose = new Pose({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
 
   pose.setOptions({
-    modelComplexity: 1, // 0: Çok hızlı ama hataya açık, 1: Dengeli (Bizim için en iyisi), 2: Çok hassas ama cihazı yorar
-    smoothLandmarks: true, // Titremeleri önler
-    enableSegmentation: false, // Arka planı silmeye gerek yok, performansı artırır
-    minDetectionConfidence: 0.6, // %60 emin olmadan insan iskeleti çizme
+    modelComplexity: 1, 
+    smoothLandmarks: true, 
+    enableSegmentation: false, 
+    minDetectionConfidence: 0.6, 
     minTrackingConfidence: 0.6
   });
 
-  // Kare işlendiğinde React komponentine (CameraFeed'e) sonuçları yolla
-  pose.onResults(onResultsCallback);
+  pose.onResults((results) => {
+    const landmarks = results.poseLandmarks;
+    let analysisResult = { status: "idle", feedback: "Kadraja girin..." };
+
+    if (landmarks) {
+      if (currentExerciseMode === "squat") analysisResult = analyzeSquatForm(landmarks);
+      else if (currentExerciseMode === "pushup") analysisResult = analyzePushupForm(landmarks);
+      else if (currentExerciseMode === "plank") analysisResult = analyzePlankForm(landmarks);
+      
+      // YAPAY ZEKA KARAR VERDİĞİ AN SES MOTORUNU TETİKLE!
+      playTone(analysisResult.status);
+    }
+    onResultsCallback(results, analysisResult);
+  });
   
   return pose;
 };
 
-// 2. Kamerayı Başlatma ve Motora Bağlama Fonksiyonu
 export const startCamera = (videoElement, poseInstance) => {
-  if (!videoElement) {
-    console.error("Video elementi bulunamadı!");
-    return null;
-  }
+  const Camera = window.Camera;
+  if (!videoElement || !Camera || !poseInstance) return null;
 
-  const camera = new Camera(videoElement, {
-    onFrame: async () => {
-      try {
-        // Kameradan saniyede 30 defa gelen her bir kareyi yapay zekaya yedir
-        await poseInstance.send({ image: videoElement });
-      } catch (error) {
-        console.error("MediaPipe kare işleme hatası:", error);
-      }
-    },
-    width: 640,
-    height: 480
+  camera = new Camera(videoElement, {
+    onFrame: async () => { await poseInstance.send({ image: videoElement }); },
+    width: 640, height: 480
   });
 
   camera.start();
   return camera;
 };
 
-// 3. Kamerayı Güvenli Kapatma (Bellek sızıntısını önlemek için)
-export const stopCamera = (cameraInstance) => {
-  if (cameraInstance) {
-    cameraInstance.stop();
-    console.log("Kamera güvenli bir şekilde kapatıldı.");
-  }
+export const stopCamera = () => {
+  if (camera) { camera.stop(); camera = null; }
 };

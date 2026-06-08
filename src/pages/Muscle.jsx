@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, LogOut, User as UserIcon, Dumbbell, CheckCircle2, Circle, Trophy, Info, Activity } from "lucide-react";
+import { Menu, LogOut, User as UserIcon, Dumbbell, CheckCircle2, Circle, Trophy, Info, Activity, XCircle, ArrowRight, Calendar } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import ChatWindow from "@/components/Chatbot/ChatWindow";
 import { useAuth } from "@/context/AuthContext";
@@ -10,8 +10,18 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti"; 
 import Lottie from "lottie-react"; 
 
+import { getUserProfile } from "@/services/dbService";
+import { recordExerciseResult } from "@/utils/adaptiveLogic";
+import programDecks from "@/data/programDecks.json"; 
+
+// 🚨 FIREBASE BAĞLANTILARI EKLENDİ (Canlı gün takibi için)
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/services/firebase";
+
+const SafeLottie = Lottie && Lottie.default ? Lottie.default : Lottie;
 const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } } };
+const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
 export default function Muscle() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,45 +31,149 @@ export default function Muscle() {
   const navigate = useNavigate();
 
   const [programLevel, setProgramLevel] = useState("beginner"); 
-  const [exercises, setExercises] = useState([
-    { id: "ex1", name: "Incline Dumbbell Press", sets: 3, reps: 10, targetMuscle: "Üst Göğüs", isCompleted: false },
-    { id: "ex2", name: "Flat Bench Press", sets: 3, reps: 10, targetMuscle: "Orta Göğüs", isCompleted: false },
-    { id: "ex3", name: "Cable Fly", sets: 4, reps: 12, targetMuscle: "Alt Göğüs", isCompleted: false },
-    { id: "ex4", name: "Overhead Triceps Extension", sets: 3, reps: 12, targetMuscle: "Arka Kol", isCompleted: false },
-  ]);
+  const [exercises, setExercises] = useState([]);
   const [isAllCompleted, setIsAllCompleted] = useState(false);
   const [activeMuscleGroup, setActiveMuscleGroup] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
+  // 🚨 YENİ: ZAMAN TAKİP STATE'LERİ
+  const [currentWeek, setCurrentWeek] = useState(1);
+  const [currentDay, setCurrentDay] = useState(1);
+
+  // 1. ADIM: Profil, Seviye ve Günü Çek
   useEffect(() => {
+    const fetchUserProgram = async () => {
+      if (!currentUser) return;
+      
+      try {
+        const profile = await getUserProfile(currentUser.uid);
+        const level = profile?.programLevel || "beginner";
+        const week = profile?.currentWeek || 1; // Firebase'den haftayı çek
+        const day = profile?.currentDay || 1;   // Firebase'den günü çek
+        
+        setProgramLevel(level); 
+        setCurrentWeek(week);
+        setCurrentDay(day);
+
+        // Sabit 1. Gün yerine, kullanıcının GERÇEK gününü filtrele
+        if (programDecks && programDecks[level]) {
+          const todaysExercises = programDecks[level]
+            .filter(ex => ex.week === week && ex.day === day)
+            .map(ex => ({ ...ex, isCompleted: false }));
+          setExercises(todaysExercises);
+        }
+      } catch (error) {
+        console.error("Program yüklenirken hata:", error);
+        toast.error("Program yüklenemedi.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProgram();
+
     fetch("/lottie/trophy.json")
       .then((res) => res.json())
       .then((data) => setTrophyAnimation(data))
-      .catch((err) => console.error("Kupa animasyonu yüklenemedi:", err));
-  }, []);
+      .catch(() => console.error("Kupa animasyonu yüklenemedi"));
+  }, [currentUser]);
 
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
-  const progressPercentage = (completedCount / exercises.length) * 100;
+  const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
 
   const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch (error) {} };
 
-  const toggleExercise = (id, targetMuscle) => {
+  const toggleExercise = async (id, targetMuscle) => {
     setActiveMuscleGroup(targetMuscle);
+    
     setExercises(prev => {
       const updated = prev.map(ex => ex.id === id ? { ...ex, isCompleted: !ex.isCompleted } : ex);
-      const allDone = updated.every(ex => ex.isCompleted);
+      const allDone = updated.length > 0 && updated.every(ex => ex.isCompleted);
       
       if (allDone && !isAllCompleted) { triggerConfetti(); setIsAllCompleted(true); } 
       else if (!allDone) { setIsAllCompleted(false); }
       return updated;
     });
+
+    const targetEx = exercises.find(e => e.id === id);
+    if (targetEx && !targetEx.isCompleted && currentUser?.uid) {
+      await recordExerciseResult(currentUser.uid, id, "success", programLevel);
+    }
+  };
+
+  const handleFailTest = async (id, e) => {
+    e.stopPropagation(); 
+    if (!currentUser?.uid) return;
+
+    toast.error("Zorlanma Kaydedildi", { description: "Yapay zeka bunu hafızaya aldı." });
+    
+    const result = await recordExerciseResult(currentUser.uid, id, "fail", programLevel);
+    
+    if (result && result.downgraded) {
+      toast.info("Programınız Hafifletildi!", { 
+        description: `Bugünkü zorlanmanızdan dolayı oturum programınız ${levelText[result.newLevel]} olarak güncellendi.`,
+        icon: "🤖"
+      });
+      
+      setProgramLevel(result.newLevel);
+      if (programDecks && programDecks[result.newLevel]) {
+        const newExercises = programDecks[result.newLevel]
+            .filter(ex => ex.week === currentWeek && ex.day === currentDay) // Gerçek zamanlı düşüş
+            .map(ex => ({ ...ex, isCompleted: false }));
+        setExercises(newExercises);
+        setIsAllCompleted(false);
+      }
+    }
+  };
+
+  // 🚨 YENİ: ZAMAN MAKİNESİ (Sonraki güne atlama motoru)
+  const advanceToNextDay = async () => {
+    if (!currentUser?.uid) return;
+
+    // Haftada 3 antrenman olduğunu varsayıyoruz (Değiştirebilirsin)
+    let nextDay = currentDay + 1;
+    let nextWeek = currentWeek;
+
+    if (nextDay > 3) {
+      nextDay = 1;
+      nextWeek += 1;
+    }
+
+    try {
+      // 1. Veritabanını Güncelle
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, { currentWeek: nextWeek, currentDay: nextDay });
+
+      // 2. Arayüz State'lerini Güncelle
+      setCurrentWeek(nextWeek);
+      setCurrentDay(nextDay);
+      setIsAllCompleted(false);
+      setActiveMuscleGroup("");
+
+      // 3. Yeni Günün Hareketlerini Çek
+      if (programDecks && programDecks[programLevel]) {
+        const newExercises = programDecks[programLevel]
+          .filter(ex => ex.week === nextWeek && ex.day === nextDay)
+          .map(ex => ({ ...ex, isCompleted: false }));
+        setExercises(newExercises);
+      }
+
+      toast.success(`${nextWeek}. Hafta, ${nextDay}. Gün Antrenmanına Geçildi!`, { icon: "🗓️" });
+    } catch (error) {
+      console.error("Güncellenirken hata oluştu:", error);
+      toast.error("Sonraki güne geçilemedi!");
+    }
   };
 
   const triggerConfetti = () => {
-    confetti({ particleCount: 140, spread: 65, origin: { y: 0.6 }, colors: ['#FF6B35', '#10b981', '#3b82f6'] });
-    toast.success("Antrenman Tamamlandı!", { description: "Tebrikler, bugünün hedeflerine ulaştın!", icon: "🏆" });
+    try {
+      const fire = typeof confetti === "function" ? confetti : confetti.default;
+      if (fire) fire({ particleCount: 140, spread: 65, origin: { y: 0.6 }, colors: ['#FF6B35', '#10b981', '#3b82f6'] });
+    } catch (error) {
+      console.error("Confetti hatası:", error);
+    }
+    toast.success("Antrenman Tamamlandı!", { description: "Harika iş çıkardın şampiyon!", icon: "🏆" });
   };
-
-  const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
   return (
     <div className="flex h-screen bg-zinc-50 dark:bg-impact-dark overflow-hidden text-zinc-900 dark:text-white transition-colors duration-300">
@@ -73,21 +187,27 @@ export default function Muscle() {
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800">
               <UserIcon className="w-4 h-4 text-zinc-500" />
-              <span className="text-sm font-medium">{currentUser?.displayName || "Emrullah"}</span>
+              <span className="text-sm font-medium">{currentUser?.displayName || "Sporcu"}</span>
             </div>
             <button onClick={handleLogout} className="p-2 text-zinc-500 hover:text-red-500 rounded-lg"><LogOut className="w-5 h-5" /></button>
           </div>
         </header>
 
-        {/* STANDARTLAŞTIRILMIŞ MAIN ETİKETİ EKLENDİ */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-20">
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-impact-surface p-5 sm:p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <div className="flex-1 w-full">
-                <h1 className="text-xl sm:text-3xl font-black tracking-tight mb-4">Günün Programı: <span className="text-impact-primary">Göğüs</span></h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-xl sm:text-3xl font-black tracking-tight">Günün Programı: <span className="text-impact-primary">Göğüs</span></h1>
+                  {/* 🚨 YENİ: ZAMAN ETİKETİ */}
+                  <span className="flex items-center gap-1.5 bg-impact-primary/10 text-impact-primary px-3 py-1 rounded-lg text-xs font-bold border border-impact-primary/20">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Hafta {currentWeek} • Gün {currentDay}
+                  </span>
+                </div>
                 
-                <div className="w-full max-w-md pr-4">
+                <div className="w-full max-w-md pr-4 mt-4">
                   <div className="flex justify-between text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
                     <span>İlerleme</span>
                     <span>{completedCount} / {exercises.length}</span>
@@ -106,35 +226,55 @@ export default function Muscle() {
               <div className="flex items-center gap-4 shrink-0">
                 <div className="flex items-center gap-2 px-4 py-2 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl">
                   <Activity className="w-4 h-4 text-impact-primary" />
-                  <span className="text-sm font-bold">{levelText[programLevel]}</span>
+                  <span className="text-sm font-bold">{levelText[programLevel] || "Yükleniyor..."}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="lg:col-span-2 space-y-4">
-                <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-3">
-                  {exercises.map((ex, index) => (
-                    <motion.div 
-                      key={ex.id} variants={itemVariants} onClick={() => toggleExercise(ex.id, ex.targetMuscle)}
-                      className={`group cursor-pointer flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-300 shadow-sm ${ex.isCompleted ? "bg-impact-primary/5 border-impact-primary/20" : "bg-white dark:bg-impact-surface border-zinc-200 dark:border-zinc-800 hover:border-impact-primary/40"}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`${ex.isCompleted ? "text-impact-primary" : "text-zinc-300 dark:text-zinc-600"}`}>
-                          {ex.isCompleted ? <CheckCircle2 className="w-6 h-6 sm:w-7 h-7" /> : <Circle className="w-6 h-6 sm:w-7 h-7" />}
+                
+                {isLoading ? (
+                  <div className="text-center p-8 text-zinc-500">Yapay Zeka programınızı hazırlıyor...</div>
+                ) : exercises.length === 0 ? (
+                  <div className="text-center p-8 text-zinc-500 font-medium bg-white dark:bg-impact-surface rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                    {currentWeek}. Hafta, {currentDay}. Gün için planlanmış bir hareket bulunamadı. Programın sonuna gelmiş olabilirsin!
+                  </div>
+                ) : (
+                  <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-3">
+                    {exercises.map((ex, index) => (
+                      <motion.div 
+                        key={ex.id} variants={itemVariants} onClick={() => toggleExercise(ex.id, ex.targetMuscle)}
+                        className={`group cursor-pointer flex items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-300 shadow-sm ${ex.isCompleted ? "bg-impact-primary/5 border-impact-primary/20" : "bg-white dark:bg-impact-surface border-zinc-200 dark:border-zinc-800 hover:border-impact-primary/40"}`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`${ex.isCompleted ? "text-impact-primary" : "text-zinc-300 dark:text-zinc-600"}`}>
+                            {ex.isCompleted ? <CheckCircle2 className="w-6 h-6 sm:w-7 h-7" /> : <Circle className="w-6 h-6 sm:w-7 h-7" />}
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">Hareket {index + 1} — {ex.targetMuscle}</span>
+                            <h3 className={`text-base sm:text-lg font-bold ${ex.isCompleted ? "text-zinc-400 line-through decoration-impact-primary/40" : ""}`}>{ex.name}</h3>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">Hareket {index + 1} — {ex.targetMuscle}</span>
-                          <h3 className={`text-base sm:text-lg font-bold ${ex.isCompleted ? "text-zinc-400 line-through decoration-impact-primary/40" : ""}`}>{ex.name}</h3>
+                        
+                        <div className="flex gap-2 sm:gap-4 items-center font-black text-sm sm:text-base">
+                          <button 
+                            onClick={(e) => handleFailTest(ex.id, e)}
+                            className="p-1.5 sm:p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Zorlandım (Adaptif Düşürme Testi)"
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
+
+                          <div className={`flex gap-2 ${ex.isCompleted ? "opacity-40" : "opacity-100"}`}>
+                            <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.sets} <span className="text-[10px] text-zinc-400 uppercase">Set</span></div>
+                            <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.reps} <span className="text-[10px] text-zinc-400 uppercase">Rep</span></div>
+                          </div>
                         </div>
-                      </div>
-                      <div className={`flex gap-4 items-center font-black text-sm sm:text-base ${ex.isCompleted ? "opacity-40" : "opacity-100"}`}>
-                        <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.sets} <span className="text-[10px] text-zinc-400 uppercase">Set</span></div>
-                        <div className="bg-zinc-50 dark:bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">{ex.reps} <span className="text-[10px] text-zinc-400 uppercase">Rep</span></div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
               </div>
 
               <div className="space-y-6">
@@ -148,22 +288,29 @@ export default function Muscle() {
                   </div>
                   
                   <AnimatePresence mode="wait">
-                    {isAllCompleted ? (
-                      <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 p-6 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex flex-col items-center justify-center gap-4 text-center">
-                        <div className="w-32 h-32 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                    {isAllCompleted && exercises.length > 0 ? (
+                      <motion.div key="success-box" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="mt-6 p-6 rounded-2xl bg-impact-primary/10 border border-impact-primary/30 flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-24 h-24 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">
                           {trophyAnimation ? (
-                            <Lottie animationData={trophyAnimation} loop={true} className="w-full h-full object-contain" />
+                            <SafeLottie animationData={trophyAnimation} loop={true} className="w-full h-full object-contain" />
                           ) : (
                             <Trophy className="w-16 h-16 text-impact-primary animate-bounce mx-auto" />
                           )}
                         </div>
                         <div>
-                          <p className="font-black text-lg text-white">Günün Kas Görevi Bitti!</p>
-                          <p className="text-xs text-zinc-400 mt-1 font-medium">Şampiyonlara yakışır bir antrenman. 🔥</p>
+                          <p className="font-black text-lg text-white">Günün Görevi Bitti!</p>
                         </div>
+
+                        {/* 🚨 YENİ: ZAMAN MAKİNESİ BUTONU */}
+                        <button 
+                          onClick={advanceToNextDay}
+                          className="w-full mt-2 flex items-center justify-center gap-2 bg-impact-primary text-black font-bold py-3 px-4 rounded-xl hover:bg-impact-secondary transition-colors"
+                        >
+                          Sonraki Antrenmana Geç <ArrowRight className="w-5 h-5" />
+                        </button>
                       </motion.div>
                     ) : (
-                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-xs font-medium text-center">
+                      <motion.div key="info-box" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-6 p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-xs font-medium text-center">
                         {activeMuscleGroup ? `Şu an hedeflenen bölge: ${activeMuscleGroup}` : "Listeyi tamamla."}
                       </motion.div>
                     )}
