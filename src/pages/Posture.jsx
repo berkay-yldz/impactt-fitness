@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu,
-  LogOut,
-  User as UserIcon,
   Activity,
   Play,
   Square,
@@ -12,11 +9,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
-import ChatWindow from "@/components/Chatbot/ChatWindow";
+import PageHeader from "@/components/ui/PageHeader";
 import CameraFeed from "@/components/CameraFeed/CameraFeed";
-import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/services/authService";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // 🚨 BERKAY'IN MOTORU: MediaPipe ve Matematik Fonksiyonları İçe Aktarıldı
@@ -35,9 +29,6 @@ export default function Posture() {
   const calibrateFlag = useRef(false);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
 
   // DOM ve MediaPipe Referansları
   const videoRef = useRef(null);
@@ -134,15 +125,6 @@ export default function Posture() {
       setRepCount(currentReps);
     }
   };
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate("/");
-    } catch (error) {
-      toast.error("Çıkış yapılamadı");
-    }
-  };
-
   const toggleCamera = () => {
     if (!isRunning) {
       toast.success("Kamera Sahnesi Hazırlanıyor", {
@@ -177,35 +159,11 @@ export default function Posture() {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-impact-surface flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden p-2 text-zinc-500 dark:text-zinc-400 hover:text-impact-primary"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h2 className="text-lg sm:text-xl font-bold hidden sm:flex items-center gap-2">
-              <Activity className="w-5 h-5 text-impact-primary" /> Postür Modülü
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 ml-2">
-              <div className="w-6 h-6 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-zinc-500">
-                <UserIcon className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                {currentUser?.displayName || "Sporcu"}
-              </span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-zinc-500 hover:text-red-500 rounded-lg ml-1 transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </header>
+        <PageHeader
+          title="Postür Modülü"
+          icon={Activity}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto pb-20">
@@ -365,7 +323,6 @@ export default function Posture() {
             </div>
           </div>
         </main>
-        <ChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       </div>
     </div>
   );

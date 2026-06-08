@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, LogOut, User as UserIcon, Dumbbell, CheckCircle2, Circle, Trophy, Info, Activity, XCircle, ArrowRight, Calendar } from "lucide-react";
+import { Dumbbell, CheckCircle2, Circle, Trophy, Info, Activity, XCircle, ArrowRight, Calendar } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
-import ChatWindow from "@/components/Chatbot/ChatWindow";
+import PageHeader from "@/components/ui/PageHeader";
 import { useAuth } from "@/context/AuthContext";
-import { logoutUser } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import confetti from "canvas-confetti"; 
@@ -25,8 +24,7 @@ const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviy
 
 export default function Muscle() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [trophyAnimation, setTrophyAnimation] = useState(null); 
+  const [trophyAnimation, setTrophyAnimation] = useState(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -80,8 +78,6 @@ export default function Muscle() {
 
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
   const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
-
-  const handleLogout = async () => { try { await logoutUser(); navigate("/"); } catch (error) { console.error("Logout hatası:", error); } };
 
   const toggleExercise = async (id, targetMuscle) => {
     setActiveMuscleGroup(targetMuscle);
@@ -179,19 +175,11 @@ export default function Muscle() {
     <div className="flex h-screen bg-zinc-50 dark:bg-impact-dark overflow-hidden text-zinc-900 dark:text-white transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-impact-surface/50 backdrop-blur-md flex items-center justify-between px-4 sm:px-6 lg:px-8 z-10">
-          <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 text-zinc-500 hover:text-impact-primary" onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6" /></button>
-            <h2 className="text-lg sm:text-xl font-bold hidden sm:flex items-center gap-2"><Dumbbell className="w-5 h-5 text-impact-primary" /> Kas Gelişimi</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-zinc-100 dark:bg-impact-dark px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800">
-              <UserIcon className="w-4 h-4 text-zinc-500" />
-              <span className="text-sm font-medium">{currentUser?.displayName || "Sporcu"}</span>
-            </div>
-            <button onClick={handleLogout} className="p-2 text-zinc-500 hover:text-red-500 rounded-lg"><LogOut className="w-5 h-5" /></button>
-          </div>
-        </header>
+        <PageHeader
+          title="Kas Gelişimi"
+          icon={Dumbbell}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-20">
@@ -321,7 +309,6 @@ export default function Muscle() {
             </div>
           </div>
         </main>
-        <ChatWindow isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
       </div>
     </div>
   );
