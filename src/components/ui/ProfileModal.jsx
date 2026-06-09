@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Mail, Activity, Scale, Ruler, Target, Dumbbell, Crown, Edit2, Save } from "lucide-react";
+import { X, User, Mail, Activity, Scale, Ruler, Target, Dumbbell, Crown, Edit2, Save, Users } from "lucide-react";
 import { updateUserProfile } from "@/services/dbService";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ export default function ProfileModal({ isOpen, onClose, profileData, currentUser
     age: "",
     weight: "",
     height: "",
+    gender: "",
     programLevel: "beginner",
     fitnessGoal: "muscle_gain"
   });
@@ -22,6 +23,7 @@ export default function ProfileModal({ isOpen, onClose, profileData, currentUser
         age: profileData.age || "",
         weight: profileData.weight || "",
         height: profileData.height || "",
+        gender: profileData.gender || "",
         programLevel: profileData.programLevel || "beginner",
         fitnessGoal: profileData.fitnessGoal || "muscle_gain"
       });
@@ -30,6 +32,7 @@ export default function ProfileModal({ isOpen, onClose, profileData, currentUser
 
   const goals = { weight_loss: "Kilo Verme", muscle_gain: "Kas Gelişimi", endurance: "Kondisyon" };
   const levels = { beginner: "Başlangıç", intermediate: "Orta", advanced: "İleri" };
+  const genders = { male: "Erkek", female: "Kadın", other: "Belirtmiyorum" };
 
   const handleSave = async () => {
     if (!currentUser?.uid) return;
@@ -39,6 +42,7 @@ export default function ProfileModal({ isOpen, onClose, profileData, currentUser
         age: Number(formData.age),
         weight: Number(formData.weight),
         height: Number(formData.height),
+        gender: formData.gender,
         programLevel: formData.programLevel,
         fitnessGoal: formData.fitnessGoal
       });
@@ -161,6 +165,23 @@ export default function ProfileModal({ isOpen, onClose, profileData, currentUser
                       <p className="text-lg font-black text-zinc-900 dark:text-white truncate mt-1">{levels[profileData?.programLevel] || "Başlangıç"}</p>
                     )}
                   </div>
+                </div>
+
+                <div className="mt-4 bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 text-zinc-500">
+                    <Users className="w-4 h-4 text-impact-primary" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Cinsiyet</span>
+                  </div>
+                  {isEditing ? (
+                    <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-1.5 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:border-impact-primary">
+                      <option value="">Seç...</option>
+                      <option value="male">Erkek</option>
+                      <option value="female">Kadın</option>
+                      <option value="other">Belirtmiyorum</option>
+                    </select>
+                  ) : (
+                    <p className="text-sm font-black text-zinc-900 dark:text-white">{genders[profileData?.gender] || "—"}</p>
+                  )}
                 </div>
 
                 <div className="mt-4 bg-orange-50 dark:bg-impact-primary/10 p-4 rounded-2xl border border-orange-100 dark:border-impact-primary/20 flex items-center justify-center text-center">

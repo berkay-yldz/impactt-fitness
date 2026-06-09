@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { Utensils, Flame, Dumbbell, HeartPulse, RefreshCw, Circle, CheckCircle2, Replace } from "lucide-react";
+import { Utensils, Flame, Dumbbell, HeartPulse, RefreshCw, Circle, CheckCircle2, Replace, Target } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
 import FoodSelectorModal from "@/components/ui/FoodSelectorModal";
+import { useAuth } from "@/context/AuthContext";
+import { getUserProfile } from "@/services/dbService";
+import { calculateCalorieTarget, GOAL_DESCRIPTIONS } from "@/utils/calorieCalculator";
 import foodData from "../data/kaggleFood.json";
 
 const MEAL_TYPES = ["SABAH", "ARA ÖĞÜN", "ÖĞLE", "ARA ÖĞÜN", "AKŞAM"];
@@ -13,6 +16,20 @@ export default function Nutrition() {
   const [activeGoal, setActiveGoal] = useState("Kas Yap");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingMealIndex, setEditingMealIndex] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    getUserProfile(currentUser.uid)
+      .then((data) => { if (data) setProfileData(data); })
+      .catch((err) => console.error("Profil çekilemedi:", err));
+  }, [currentUser]);
+
+  const calorieTarget = useMemo(
+    () => calculateCalorieTarget(profileData, activeGoal),
+    [profileData, activeGoal]
+  );
 
   const fetchDietPlan = () => {
     setIsLoading(true);
@@ -107,24 +124,94 @@ export default function Nutrition() {
               </div>
             </div>
 
-            {/* Günlük Toplam Makro */}
-            {meals.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
-                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Toplam Kalori</p>
-                  <p className="text-2xl font-black text-zinc-900 dark:text-white">{totals.calories} <span className="text-xs text-zinc-400 font-medium">kcal</span></p>
+            {/* Günlük Kalori Hedefi — BMR/TDEE'den hesaplandı */}
+            {calorieTarget ? (
+              <div className="bg-gradient-to-br from-impact-primary/10 via-white dark:via-impact-surface to-orange-500/5 border border-impact-primary/30 rounded-3xl p-6 shadow-sm mb-6 relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-impact-primary/10 rounded-full blur-3xl" />
+                <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-2 bg-impact-primary text-black rounded-xl">
+                        <Target className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-black text-impact-primary uppercase tracking-widest">Günlük Kalori Hedefin</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-black text-zinc-900 dark:text-white tabular-nums">{totals.calories}</span>
+                      <span className="text-2xl text-zinc-400 font-bold tabular-nums">/ {calorieTarget.target}</span>
+                      <span className="text-sm text-zinc-500 font-medium">kcal</span>
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-1.5">
+                      {GOAL_DESCRIPTIONS[calorieTarget.goalKey]} • TDEE {calorieTarget.tdee} kcal
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    {totals.calories <= calorieTarget.target ? (
+                      <p className="text-xs text-zinc-500 font-medium">Kalan</p>
+                    ) : (
+                      <p className="text-xs text-red-500 font-medium">Aştın</p>
+                    )}
+                    <p className={`text-2xl font-black tabular-nums ${totals.calories <= calorieTarget.target ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
+                      {totals.calories <= calorieTarget.target ? "+" : "-"}{Math.abs(calorieTarget.target - totals.calories)} <span className="text-xs text-zinc-400 font-medium">kcal</span>
+                    </p>
+                  </div>
                 </div>
+
+                <div className="mt-5 h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${totals.calories > calorieTarget.target ? "bg-red-500" : "bg-impact-primary"}`}
+                    style={{ width: `${Math.min(100, (totals.calories / calorieTarget.target) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ) : meals.length > 0 && (
+              <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 mb-6 text-center text-xs font-medium text-amber-700 dark:text-amber-300">
+                💡 Profilini tamamla (yaş, kilo, boy, cinsiyet), kalori hedefin otomatik hesaplansın.
+              </div>
+            )}
+
+            {/* Makro Kartları (hedef varsa X / Y, yoksa sadece toplam) */}
+            {meals.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
                 <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
                   <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Protein</p>
-                  <p className="text-2xl font-black text-zinc-900 dark:text-white">{totals.protein.toFixed(0)}<span className="text-xs text-zinc-400 font-medium"> g</span></p>
+                  <p className="text-xl font-black text-zinc-900 dark:text-white tabular-nums">
+                    {totals.protein.toFixed(0)}
+                    {calorieTarget && <span className="text-sm text-zinc-400 font-bold"> / {calorieTarget.macros.protein}</span>}
+                    <span className="text-xs text-zinc-400 font-medium"> g</span>
+                  </p>
+                  {calorieTarget && (
+                    <div className="mt-2 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, (totals.protein / calorieTarget.macros.protein) * 100)}%` }} />
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
                   <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mb-1">Karbonhidrat</p>
-                  <p className="text-2xl font-black text-zinc-900 dark:text-white">{totals.carbs.toFixed(0)}<span className="text-xs text-zinc-400 font-medium"> g</span></p>
+                  <p className="text-xl font-black text-zinc-900 dark:text-white tabular-nums">
+                    {totals.carbs.toFixed(0)}
+                    {calorieTarget && <span className="text-sm text-zinc-400 font-bold"> / {calorieTarget.macros.carbs}</span>}
+                    <span className="text-xs text-zinc-400 font-medium"> g</span>
+                  </p>
+                  {calorieTarget && (
+                    <div className="mt-2 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(100, (totals.carbs / calorieTarget.macros.carbs) * 100)}%` }} />
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm">
                   <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Yağ</p>
-                  <p className="text-2xl font-black text-zinc-900 dark:text-white">{totals.fat.toFixed(0)}<span className="text-xs text-zinc-400 font-medium"> g</span></p>
+                  <p className="text-xl font-black text-zinc-900 dark:text-white tabular-nums">
+                    {totals.fat.toFixed(0)}
+                    {calorieTarget && <span className="text-sm text-zinc-400 font-bold"> / {calorieTarget.macros.fat}</span>}
+                    <span className="text-xs text-zinc-400 font-medium"> g</span>
+                  </p>
+                  {calorieTarget && (
+                    <div className="mt-2 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-orange-500 rounded-full" style={{ width: `${Math.min(100, (totals.fat / calorieTarget.macros.fat) * 100)}%` }} />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
