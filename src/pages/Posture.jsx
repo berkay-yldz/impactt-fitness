@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, CheckCircle2, Circle, Trophy, Info, XCircle, ArrowRight, Calendar, PlayCircle } from "lucide-react";
+import { Activity, CheckCircle2, Circle, Trophy, Info, XCircle, ArrowRight, Calendar, PlayCircle, Camera, Crown, Sparkles } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
 import ExerciseVideoModal from "@/components/ui/ExerciseVideoModal";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import Lottie from "lottie-react";
@@ -26,6 +27,7 @@ export default function Posture() {
   const [demoExercise, setDemoExercise] = useState(null);
   const [trophyAnimation, setTrophyAnimation] = useState(null);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [programLevel, setProgramLevel] = useState("beginner");
   const [exercises, setExercises] = useState([]);
@@ -263,7 +265,7 @@ export default function Posture() {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-6">
+                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                   <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><Info className="w-4 h-4 text-impact-primary" /> Hedef Bölge</h3>
                   <div className="aspect-square bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60" />
@@ -301,6 +303,37 @@ export default function Posture() {
                     )}
                   </AnimatePresence>
 
+                </div>
+
+                {/* Form Analizi CTA — Premium Discipline kamerasına yönlendirme */}
+                <div className="relative bg-gradient-to-br from-impact-primary/10 via-white dark:via-impact-surface to-impact-secondary/10 p-6 rounded-3xl border border-impact-primary/30 shadow-sm overflow-hidden">
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-impact-primary/10 rounded-full blur-2xl" />
+
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="p-2 bg-impact-primary text-black rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                        <Camera className="w-5 h-5" />
+                      </div>
+                      <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-impact-primary bg-impact-primary/10 px-2 py-1 rounded-full border border-impact-primary/20">
+                        <Crown className="w-3 h-3" /> Premium
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1.5 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-impact-primary" />
+                      Form Analizi
+                    </h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed mb-4">
+                      Hareketini kamera ile yap, yapay zeka koçun formunu gerçek zamanlı analiz etsin. Tekrarları otomatik say, postür sapmalarını anında gör.
+                    </p>
+
+                    <button
+                      onClick={() => navigate("/discipline")}
+                      className="w-full flex items-center justify-center gap-2 bg-impact-primary hover:bg-impact-secondary text-black font-bold py-3 px-4 rounded-xl transition-colors text-sm shadow-[0_0_15px_rgba(249,115,22,0.25)]"
+                    >
+                      Form Analizine Geç <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
