@@ -401,7 +401,7 @@ export default function Muscle() {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm sticky top-6">
+                <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                   <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                     <Info className="w-4 h-4 text-impact-primary" /> Hedef Kas
                     Odak Alanı
@@ -468,6 +468,54 @@ export default function Muscle() {
                     )}
                   </AnimatePresence>
                 </div>
+
+                {/* Sonraki Antrenman Önizleme */}
+                {(() => {
+                  const nextDayCalc = currentDay + 1;
+                  const nextDay = nextDayCalc > 3 ? 1 : nextDayCalc;
+                  const nextWeek = nextDayCalc > 3 ? currentWeek + 1 : currentWeek;
+                  const nextExercises = (programDecks?.[programLevel] || [])
+                    .filter(ex => ex.week === nextWeek && ex.day === nextDay);
+
+                  return (
+                    <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-impact-primary" /> Sonraki Antrenman
+                        </h3>
+                        <span className="text-[10px] font-bold text-impact-primary bg-impact-primary/10 px-2 py-1 rounded-full border border-impact-primary/20">
+                          Hafta {nextWeek} • Gün {nextDay}
+                        </span>
+                      </div>
+
+                      {nextExercises.length === 0 ? (
+                        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 text-zinc-500 text-xs font-medium text-center">
+                          Programın sonuna geldin! 🎉
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {nextExercises.slice(0, 4).map((ex, idx) => (
+                            <div key={ex.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800">
+                              <div className="w-7 h-7 rounded-lg bg-impact-primary/10 text-impact-primary flex items-center justify-center text-xs font-black shrink-0">
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200 truncate">{ex.name}</p>
+                                <p className="text-[10px] text-zinc-400 uppercase tracking-widest">{ex.targetMuscle}</p>
+                              </div>
+                              <span className="text-[10px] font-bold text-zinc-500 shrink-0">{ex.sets}×{ex.reps}</span>
+                            </div>
+                          ))}
+                          {nextExercises.length > 4 && (
+                            <p className="text-[10px] text-zinc-400 text-center font-medium pt-1">
+                              +{nextExercises.length - 4} hareket daha
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
