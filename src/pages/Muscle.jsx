@@ -25,7 +25,6 @@ import { getUserProfile } from "@/services/dbService";
 import { recordExerciseResult } from "@/utils/adaptiveLogic";
 import programDecks from "@/data/programDecks.json";
 
-// 🚨 FIREBASE BAĞLANTILARI EKLENDİ (Canlı gün takibi için)
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/services/firebase";
 
@@ -61,11 +60,9 @@ export default function Muscle() {
   const [activeMuscleGroup, setActiveMuscleGroup] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🚨 YENİ: ZAMAN TAKİP STATE'LERİ
   const [currentWeek, setCurrentWeek] = useState(1);
   const [currentDay, setCurrentDay] = useState(1);
 
-  // 1. ADIM: Profil, Seviye ve Günü Çek
   useEffect(() => {
     const fetchUserProgram = async () => {
       if (!currentUser) return;
@@ -73,17 +70,16 @@ export default function Muscle() {
       try {
         const profile = await getUserProfile(currentUser.uid);
         const level = profile?.programLevel || "beginner";
-        const week = profile?.currentWeek || 1; // Firebase'den haftayı çek
-        const day = profile?.currentDay || 1; // Firebase'den günü çek
+        const week = profile?.currentWeek || 1; 
+        const day = profile?.currentDay || 1; 
 
         setProgramLevel(level);
         setCurrentWeek(week);
         setCurrentDay(day);
 
-        // Sabit 1. Gün yerine, kullanıcının GERÇEK gününü filtrele
         if (programDecks && programDecks[level]) {
           const todaysExercises = programDecks[level]
-            .filter((ex) => ex.week === week && ex.day === day)
+            .filter((ex) => ex.week === 1 && ex.day === day) 
             .map((ex) => ({ ...ex, isCompleted: false }));
           setExercises(todaysExercises);
         }
@@ -128,7 +124,23 @@ export default function Muscle() {
 
     const targetEx = exercises.find((e) => e.id === id);
     if (targetEx && !targetEx.isCompleted && currentUser?.uid) {
-      await recordExerciseResult(currentUser.uid, id, "success", programLevel);
+      const result = await recordExerciseResult(currentUser.uid, id, "success", programLevel);
+      
+      if (result && result.upgraded) {
+        toast.success("Adaptif Zeka Devrede!", {
+          description: `Çok hızlı güçleniyorsun! Seviyen ${levelText[result.newLevel]} olarak anında yükseltildi.`,
+          icon: "🚀",
+        });
+        
+        setProgramLevel(result.newLevel);
+        if (programDecks && programDecks[result.newLevel]) {
+          const newExercises = programDecks[result.newLevel]
+            .filter((ex) => ex.week === 1 && ex.day === currentDay) 
+            .map((ex) => ({ ...ex, isCompleted: false }));
+          setExercises(newExercises);
+          setIsAllCompleted(false);
+        }
+      }
     }
   };
 
@@ -156,7 +168,7 @@ export default function Muscle() {
       setProgramLevel(result.newLevel);
       if (programDecks && programDecks[result.newLevel]) {
         const newExercises = programDecks[result.newLevel]
-          .filter((ex) => ex.week === currentWeek && ex.day === currentDay) // Gerçek zamanlı düşüş
+          .filter((ex) => ex.week === 1 && ex.day === currentDay) 
           .map((ex) => ({ ...ex, isCompleted: false }));
         setExercises(newExercises);
         setIsAllCompleted(false);
@@ -164,42 +176,63 @@ export default function Muscle() {
     }
   };
 
-  // 🚨 YENİ: ZAMAN MAKİNESİ (Sonraki güne atlama motoru)
   const advanceToNextDay = async () => {
     if (!currentUser?.uid) return;
 
-    // Haftada 3 antrenman olduğunu varsayıyoruz (Değiştirebilirsin)
     let nextDay = currentDay + 1;
     let nextWeek = currentWeek;
+    let nextLevel = programLevel;
+    let isLevelUp = false;
 
     if (nextDay > 3) {
       nextDay = 1;
       nextWeek += 1;
+
+      if (nextWeek > 4) {
+        if (programLevel === "beginner") {
+          nextLevel = "intermediate";
+          isLevelUp = true;
+        } else if (programLevel === "intermediate") {
+          nextLevel = "advanced";
+          isLevelUp = true;
+        }
+        
+        nextWeek = 1; 
+      }
     }
 
     try {
-      // 1. Veritabanını Güncelle
       const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, { currentWeek: nextWeek, currentDay: nextDay });
+      const updateData = { currentWeek: nextWeek, currentDay: nextDay };
+      if (isLevelUp) updateData.programLevel = nextLevel; 
+      
+      await updateDoc(userRef, updateData);
 
-      // 2. Arayüz State'lerini Güncelle
       setCurrentWeek(nextWeek);
       setCurrentDay(nextDay);
+      if (isLevelUp) setProgramLevel(nextLevel);
       setIsAllCompleted(false);
       setActiveMuscleGroup("");
 
-      // 3. Yeni Günün Hareketlerini Çek
-      if (programDecks && programDecks[programLevel]) {
-        const newExercises = programDecks[programLevel]
-          .filter((ex) => ex.week === nextWeek && ex.day === nextDay)
+      if (programDecks && programDecks[nextLevel]) {
+        const newExercises = programDecks[nextLevel]
+          .filter((ex) => ex.week === 1 && ex.day === nextDay)
           .map((ex) => ({ ...ex, isCompleted: false }));
         setExercises(newExercises);
       }
 
-      toast.success(
-        `${nextWeek}. Hafta, ${nextDay}. Gün Antrenmanına Geçildi!`,
-        { icon: "🗓️" },
-      );
+      if (isLevelUp) {
+        toast.success(`Üst Sıklete Çıktın! Yeni Seviye: ${levelText[nextLevel]}`, {
+          description: "Harika bir 4 hafta geçirdin, şimdi sınırları daha da zorlama vakti!",
+          icon: "🔥",
+        });
+        triggerConfetti(); 
+      } else {
+        toast.success(
+          `${nextWeek}. Hafta, ${nextDay}. Gün Antrenmanına Geçildi!`,
+          { icon: "🗓️" }
+        );
+      }
     } catch (error) {
       console.error("Güncellenirken hata oluştu:", error);
       toast.error("Sonraki güne geçilemedi!");
@@ -244,7 +277,6 @@ export default function Muscle() {
                     Günün Programı:{" "}
                     <span className="text-impact-primary">Göğüs</span>
                   </h1>
-                  {/* 🚨 YENİ: ZAMAN ETİKETİ */}
                   <span className="flex items-center gap-1.5 bg-impact-primary/10 text-impact-primary px-3 py-1 rounded-lg text-xs font-bold border border-impact-primary/20">
                     <Calendar className="w-3.5 h-3.5" />
                     Hafta {currentWeek} • Gün {currentDay}
@@ -413,7 +445,6 @@ export default function Muscle() {
                           </p>
                         </div>
 
-                        {/* 🚨 YENİ: ZAMAN MAKİNESİ BUTONU */}
                         <button
                           onClick={advanceToNextDay}
                           className="w-full mt-2 flex items-center justify-center gap-2 bg-impact-primary text-black font-bold py-3 px-4 rounded-xl hover:bg-impact-secondary transition-colors"
