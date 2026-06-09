@@ -2,35 +2,48 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, X, MessageSquare, Loader2, Bot } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-// Not: Emrullah'ın yazdığı RAG API'sine istek atacak fonksiyonunu buraya import edebilirsin
-// import { sendChatMessage } from "@/services/apiService"; 
 
 /**
  * IMPACT AI - Karakter Duygu Analiz Motoru
  * Yapay zekanın cümlesindeki kelimeleri okuyarak doğru animasyonu tetikler.
  */
 const getCoachAsset = (text) => {
-  if (!text) return "/assets/coach-idle.webp";
-  
+  if (!text) return "/assets/coach-thumbsup.webp";
+
   const lowerText = text.toLowerCase();
-  
+
   // Büyük başarı ve kutlama kelimeleri
-  if (lowerText.includes("tebrik") || lowerText.includes("şampiyon") || lowerText.includes("harika") || lowerText.includes("mükemmel") || lowerText.includes("bitti")) {
+  if (
+    lowerText.includes("tebrik") ||
+    lowerText.includes("şampiyon") ||
+    lowerText.includes("harika") ||
+    lowerText.includes("mükemmel") ||
+    lowerText.includes("bitti")
+  ) {
     return "/assets/coach-celebrate.gif";
-  } 
+  }
   // Onaylama ve pozitif geri bildirim kelimeleri
-  else if (lowerText.includes("iyi") || lowerText.includes("tamam") || lowerText.includes("doğru") || lowerText.includes("güzel") || lowerText.includes("aynen")) {
+  else if (
+    lowerText.includes("iyi") ||
+    lowerText.includes("tamam") ||
+    lowerText.includes("doğru") ||
+    lowerText.includes("güzel") ||
+    lowerText.includes("aynen")
+  ) {
     return "/assets/coach-thumbsup.webp";
   }
-  
+
   // Standart bekleme/konuşma hali
-  return "/assets/coach-idle.webp";
+  return "/assets/coach-thumbsup.webp";
 };
 
 export default function ChatWindow({ isOpen, onClose }) {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([
-    { role: "ai", content: `Selam ${currentUser?.displayName?.split(' ')[0] || 'Şampiyon'}! Bugün nasıl bir antrenman planlıyoruz?` }
+    {
+      role: "ai",
+      content: `Selam ${currentUser?.displayName?.split(" ")[0] || "Şampiyon"}! Bugün nasıl bir antrenman planlıyoruz?`,
+    },
   ]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,25 +64,37 @@ export default function ChatWindow({ isOpen, onClose }) {
     setIsLoading(true);
 
     try {
-      // 🚨 BURASI EMRULLAH'IN VERCEL RAG API'SİNE GİDECEK YERDİR
-      // Örnek: const response = await sendChatMessage(currentUser.uid, inputText);
+      // 🚨 GERÇEK VERCEL SERVERLESS & GEMINI API BAĞLANTISI DEVREDE
+      const response = await fetch("/api/chat-rag", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: currentUser?.uid,
+          message: userMsg.content,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Sunucu yanıt vermedi.");
+      }
+
+      const data = await response.json();
+
+      // Gemini'den gelen gerçek cevabı ekrana bas
+      setMessages((prev) => [...prev, { role: "ai", content: data.reply }]);
       
-      // Şimdilik test için sahte (mock) bir gecikme ve cevap ekliyoruz:
-      setTimeout(() => {
-        let mockResponse = "Bunu anladım. Antrenmanına odaklanmaya devam et!";
-        if (userMsg.content.toLowerCase().includes("bitti") || userMsg.content.toLowerCase().includes("yaptım")) {
-          mockResponse = "Harika iş çıkardın şampiyon! Tebrikler, bugünün hedefini ezdin geçtin.";
-        } else if (userMsg.content.toLowerCase().includes("nasılsın")) {
-          mockResponse = "Gayet iyi! Demirleri kaldırmak için sabırsızlanıyorum.";
-        }
-
-        setMessages((prev) => [...prev, { role: "ai", content: mockResponse }]);
-        setIsLoading(false);
-      }, 1000);
-
     } catch (error) {
       console.error("Chatbot API Hatası:", error);
-      setMessages((prev) => [...prev, { role: "ai", content: "Şu an sunucuya bağlanamıyorum, daha sonra tekrar dene." }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: "Şu an sunucuya veya yapay zekaya bağlanamıyorum. Lütfen daha sonra tekrar dene.",
+        },
+      ]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -87,15 +112,24 @@ export default function ChatWindow({ isOpen, onClose }) {
           {/* Üst Bar */}
           <div className="h-16 bg-impact-primary flex items-center justify-between px-4 sm:px-6 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center p-1 overflow-hidden">
-                <img src="/assets/coach-idle.webp" alt="Coach AI" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 bg-white/20 rounded-full overflow-hidden">
+                <img
+                  src="/assets/coach-idle.webp"
+                  alt="Rol Model"
+                  className="w-full h-full rounded-full object-contain"
+                />
               </div>
               <div>
                 <h3 className="font-black text-black">IMPACT AI</h3>
-                <p className="text-[10px] text-black/70 font-bold uppercase tracking-wider">Dijital Antrenör</p>
+                <p className="text-[10px] text-black/70 font-bold uppercase tracking-wider">
+                  Dijital Antrenör
+                </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 text-black/70 hover:text-black transition-colors rounded-full hover:bg-white/20">
+            <button
+              onClick={onClose}
+              className="p-2 text-black/70 hover:text-black transition-colors rounded-full hover:bg-white/20"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -112,24 +146,36 @@ export default function ChatWindow({ isOpen, onClose }) {
                 {msg.role === "ai" && (
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 border-2 border-impact-primary bg-zinc-100 dark:bg-impact-dark flex items-center justify-center relative">
                     {/* DİNAMİK KARAKTER RENDERİ */}
-                    <img src={getCoachAsset(msg.content)} alt="AI Coach" className="w-full h-full object-cover scale-110" />
+                    <img
+                      src={getCoachAsset(msg.content)}
+                      alt="AI Coach"
+                      className="w-[99%] h-[99%] object-contain"
+                    />{" "}
                   </div>
                 )}
-                
-                <div className={`max-w-[75%] p-3 sm:p-4 rounded-2xl text-sm ${msg.role === "user" ? "bg-zinc-900 dark:bg-white text-white dark:text-black rounded-tr-sm" : "bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-sm shadow-sm"}`}>
+
+                <div
+                  className={`max-w-[75%] p-3 sm:p-4 rounded-2xl text-sm ${msg.role === "user" ? "bg-zinc-900 dark:bg-white text-white dark:text-black rounded-tr-sm" : "bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-sm shadow-sm"}`}
+                >
                   {msg.content}
                 </div>
               </motion.div>
             ))}
-            
+
             {isLoading && (
               <div className="flex gap-3 justify-start">
-                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 border-2 border-impact-primary bg-zinc-100 dark:bg-impact-dark flex items-center justify-center">
-                    <img src="/assets/coach-idle.webp" alt="AI Coach Loading" className="w-full h-full object-cover scale-110 opacity-50" />
-                  </div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden shrink-0 border-2 border-impact-primary bg-zinc-100 dark:bg-impact-dark flex items-center justify-center">
+                  <img
+                    src="/assets/coach-thumbsup.webp"
+                    alt="AI Coach Loading"
+                    className="w-full h-full object-cover scale-110 opacity-50"
+                  />
+                </div>
                 <div className="bg-white dark:bg-impact-surface border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                   <Loader2 className="w-4 h-4 text-impact-primary animate-spin" />
-                  <span className="text-xs font-medium text-zinc-500">Antrenör yazıyor...</span>
+                  <span className="text-xs font-medium text-zinc-500">
+                    Antrenör yazıyor...
+                  </span>
                 </div>
               </div>
             )}
