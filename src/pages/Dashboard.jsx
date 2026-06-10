@@ -4,6 +4,8 @@ import { Flame, Dumbbell, Utensils, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
+import StreakForest from "@/components/ui/StreakForest";
+import MuscleHealthMap from "@/components/ui/MuscleHealthMap";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { getUserProfile } from "@/services/dbService";
@@ -127,6 +129,22 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            {!isLoading && (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+              >
+                <motion.div variants={cardVariants}>
+                  <StreakForest count={profileData.totalWorkouts || 0} />
+                </motion.div>
+                <motion.div variants={cardVariants}>
+                  <MuscleHealthMap />
                 </motion.div>
               </motion.div>
             )}
