@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dumbbell,
@@ -15,6 +15,7 @@ import {
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
 import ExerciseVideoModal from "@/components/ui/ExerciseVideoModal";
+import MuscleMap from "@/components/ui/MuscleMap";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,6 +24,8 @@ import Lottie from "lottie-react";
 
 import { getUserProfile } from "@/services/dbService";
 import { recordExerciseResult } from "@/utils/adaptiveLogic";
+import { recordCompletedMuscle } from "@/utils/muscleHistory";
+import { bumpStreakIfNeeded } from "@/utils/streakLogic";
 import programDecks from "@/data/programDecks.json";
 
 import { doc, updateDoc } from "firebase/firestore";
@@ -103,6 +106,11 @@ export default function Muscle() {
   const progressPercentage =
     exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
 
+  const dayMuscleGroups = useMemo(() => {
+    const unique = [...new Set(exercises.map((ex) => ex.targetMuscle))];
+    return unique.filter(Boolean).join(" + ");
+  }, [exercises]);
+
   const toggleExercise = async (id, targetMuscle) => {
     setActiveMuscleGroup(targetMuscle);
 
@@ -124,6 +132,7 @@ export default function Muscle() {
 
     const targetEx = exercises.find((e) => e.id === id);
     if (targetEx && !targetEx.isCompleted && currentUser?.uid) {
+      recordCompletedMuscle(targetMuscle);
       const result = await recordExerciseResult(currentUser.uid, id, "success", programLevel);
       
       if (result && result.upgraded) {
@@ -207,6 +216,7 @@ export default function Muscle() {
       if (isLevelUp) updateData.programLevel = nextLevel; 
       
       await updateDoc(userRef, updateData);
+      await bumpStreakIfNeeded(currentUser.uid);
 
       setCurrentWeek(nextWeek);
       setCurrentDay(nextDay);
@@ -275,7 +285,7 @@ export default function Muscle() {
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-xl sm:text-3xl font-black tracking-tight">
                     Günün Programı:{" "}
-                    <span className="text-impact-primary">Göğüs</span>
+                    <span className="text-impact-primary">{dayMuscleGroups || "Hazırlanıyor"}</span>
                   </h1>
                   <span className="flex items-center gap-1.5 bg-impact-primary/10 text-impact-primary px-3 py-1 rounded-lg text-xs font-bold border border-impact-primary/20">
                     <Calendar className="w-3.5 h-3.5" />
@@ -407,16 +417,13 @@ export default function Muscle() {
                     Odak Alanı
                   </h3>
                   <div className="aspect-square bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60" />
-                    <img
-                      src="/assets/muscle-map.svg"
-                      alt="Kas Haritası"
-                      className="w-full h-full object-contain relative z-10 dark:opacity-90 dark:invert"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.parentElement.innerHTML = `<span class="text-xs text-zinc-400 font-bold uppercase tracking-widest text-center">muscle-map.svg<br/><span class="text-[10px] lowercase text-impact-primary font-black">${activeMuscleGroup || "Seçim Bekleniyor"}</span></span>`;
-                      }}
-                    />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60 pointer-events-none" />
+                    <div className="relative z-10 w-full h-full">
+                      <MuscleMap
+                        activeMuscle={activeMuscleGroup}
+                        dayMuscles={dayMuscleGroups}
+                      />
+                    </div>
                   </div>
 
                   <AnimatePresence mode="wait">

@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, CheckCircle2, Circle, Trophy, Info, XCircle, ArrowRight, Calendar, PlayCircle, Camera, Crown, Sparkles } from "lucide-react";
+import { Activity, CheckCircle2, Circle, Trophy, Info, XCircle, ArrowRight, Calendar, PlayCircle, Camera, Crown, Sparkles, Timer } from "lucide-react";
 import Sidebar from "@/components/ui/Sidebar";
 import PageHeader from "@/components/ui/PageHeader";
 import ExerciseVideoModal from "@/components/ui/ExerciseVideoModal";
+import MuscleMap from "@/components/ui/MuscleMap";
+import HoldTimerOverlay from "@/components/ui/HoldTimerOverlay";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -12,6 +14,8 @@ import Lottie from "lottie-react";
 
 import { getUserProfile } from "@/services/dbService";
 import { recordExerciseResult } from "@/utils/adaptiveLogic";
+import { recordCompletedMuscle } from "@/utils/muscleHistory";
+import { bumpStreakIfNeeded } from "@/utils/streakLogic";
 import programDecks from "@/data/programDecks.json";
 
 import { doc, updateDoc } from "firebase/firestore";
@@ -22,9 +26,18 @@ const containerVariants = { hidden: { opacity: 0 }, show: { opacity: 1, transiti
 const itemVariants = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 22 } } };
 const levelText = { beginner: "Başlangıç Seviyesi", intermediate: "Orta Seviye", advanced: "İleri Seviye" };
 
+const HOLD_KEYWORDS = ["plank", "wall sit", "wall-sit", "side plank", "superman", "hold", "hollow"];
+const getInitialSeconds = (ex) => {
+  if (!ex) return 30;
+  const name = (ex.name || "").toLowerCase();
+  if (HOLD_KEYWORDS.some((k) => name.includes(k))) return Number(ex.reps) || 30;
+  return Number(ex.restSeconds) || 30;
+};
+
 export default function Posture() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [demoExercise, setDemoExercise] = useState(null);
+  const [timerExercise, setTimerExercise] = useState(null);
   const [trophyAnimation, setTrophyAnimation] = useState(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -45,8 +58,8 @@ export default function Posture() {
       try {
         const profile = await getUserProfile(currentUser.uid);
         const level = profile?.programLevel || "beginner";
-        const week = profile?.postureWeek || 1;
-        const day = profile?.postureDay || 1;
+        const week = 1;
+        const day = ((Number(profile?.postureDay) - 1) % 3 + 3) % 3 + 1 || 1;
 
         setProgramLevel(level);
         setCurrentWeek(week);
@@ -77,6 +90,11 @@ export default function Posture() {
   const completedCount = exercises.filter(ex => ex.isCompleted).length;
   const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
 
+  const dayMuscleGroups = useMemo(() => {
+    const unique = [...new Set(exercises.map((ex) => ex.targetMuscle))];
+    return unique.filter(Boolean).join(" + ");
+  }, [exercises]);
+
   const toggleExercise = async (id, targetMuscle) => {
     setActiveMuscleGroup(targetMuscle);
 
@@ -91,6 +109,7 @@ export default function Posture() {
 
     const targetEx = exercises.find(e => e.id === id);
     if (targetEx && !targetEx.isCompleted && currentUser?.uid) {
+      recordCompletedMuscle(targetMuscle);
       await recordExerciseResult(currentUser.uid, id, "success", programLevel);
     }
   };
@@ -124,16 +143,18 @@ export default function Posture() {
     if (!currentUser?.uid) return;
 
     let nextDay = currentDay + 1;
-    let nextWeek = currentWeek;
+    let nextWeek = 1;
+    let cycledBack = false;
 
     if (nextDay > 3) {
       nextDay = 1;
-      nextWeek += 1;
+      cycledBack = true;
     }
 
     try {
       const userRef = doc(db, "users", currentUser.uid);
       await updateDoc(userRef, { postureWeek: nextWeek, postureDay: nextDay });
+      await bumpStreakIfNeeded(currentUser.uid);
 
       setCurrentWeek(nextWeek);
       setCurrentDay(nextDay);
@@ -147,7 +168,11 @@ export default function Posture() {
         setExercises(newExercises);
       }
 
-      toast.success(`${nextWeek}. Hafta, ${nextDay}. Gün Postür Antrenmanına Geçildi!`, { icon: "🗓️" });
+      if (cycledBack) {
+        toast.success("Bir döngü tamamlandı! 🎉 Yeni döngü başlıyor.", { icon: "🔄" });
+      } else {
+        toast.success(`${nextDay}. Gün Postür Antrenmanına Geçildi!`, { icon: "🗓️" });
+      }
     } catch (error) {
       console.error("Güncellenirken hata oluştu:", error);
       toast.error("Sonraki güne geçilemedi!");
@@ -246,6 +271,13 @@ export default function Posture() {
                             <PlayCircle className="w-5 h-5" />
                           </button>
                           <button
+                            onClick={(e) => { e.stopPropagation(); setTimerExercise(ex); }}
+                            className="p-1.5 sm:p-2 text-zinc-400 hover:text-impact-primary hover:bg-impact-primary/10 rounded-lg transition-colors"
+                            title="Süre tutucuyu aç"
+                          >
+                            <Timer className="w-5 h-5" />
+                          </button>
+                          <button
                             onClick={(e) => handleFailTest(ex.id, e)}
                             className="p-1.5 sm:p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Zorlandım (Adaptif Düşürme Testi)"
@@ -268,10 +300,12 @@ export default function Posture() {
                 <div className="bg-white dark:bg-impact-surface p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
                   <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><Info className="w-4 h-4 text-impact-primary" /> Hedef Bölge</h3>
                   <div className="aspect-square bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center p-4 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60" />
-                    <Activity className="w-24 h-24 text-impact-primary/40 relative z-10" />
-                    <div className="absolute bottom-4 left-0 right-0 text-center">
-                      <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">{activeMuscleGroup || "Hareket Seç"}</span>
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-impact-primary/10 via-transparent to-transparent opacity-60 pointer-events-none" />
+                    <div className="relative z-10 w-full h-full">
+                      <MuscleMap
+                        activeMuscle={activeMuscleGroup}
+                        dayMuscles={dayMuscleGroups}
+                      />
                     </div>
                   </div>
 
@@ -344,6 +378,12 @@ export default function Posture() {
         isOpen={!!demoExercise}
         onClose={() => setDemoExercise(null)}
         exercise={demoExercise}
+      />
+      <HoldTimerOverlay
+        isOpen={!!timerExercise}
+        onClose={() => setTimerExercise(null)}
+        exerciseName={timerExercise?.name}
+        initialSeconds={getInitialSeconds(timerExercise)}
       />
     </div>
   );
