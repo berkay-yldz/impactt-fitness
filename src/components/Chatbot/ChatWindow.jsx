@@ -64,35 +64,33 @@ export default function ChatWindow({ isOpen, onClose }) {
     setIsLoading(true);
 
     try {
-      // 🚨 GERÇEK VERCEL SERVERLESS & GEMINI API BAĞLANTISI DEVREDE
+      if (!currentUser?.uid) {
+        throw new Error("Kullanıcı oturumu bulunamadı");
+      }
+
       const response = await fetch("/api/chat-rag", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          uid: currentUser?.uid,
+          uid: currentUser.uid,
           message: userMsg.content,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Sunucu yanıt vermedi.");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      const { reply } = await response.json();
+      if (!reply) throw new Error("Boş yanıt");
 
-      // Gemini'den gelen gerçek cevabı ekrana bas
-      setMessages((prev) => [...prev, { role: "ai", content: data.reply }]);
-      
+      setMessages((prev) => [...prev, { role: "ai", content: reply }]);
     } catch (error) {
       console.error("Chatbot API Hatası:", error);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "ai",
-          content: "Şu an sunucuya veya yapay zekaya bağlanamıyorum. Lütfen daha sonra tekrar dene.",
-        },
+        { role: "ai", content: "Şu an sunucuya bağlanamıyorum, biraz sonra tekrar dene." },
       ]);
     } finally {
       setIsLoading(false);
